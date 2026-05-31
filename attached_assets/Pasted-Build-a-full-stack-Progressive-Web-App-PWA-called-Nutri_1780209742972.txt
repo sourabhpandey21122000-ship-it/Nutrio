@@ -1,0 +1,82 @@
+Build a full-stack Progressive Web App (PWA) called "Nutrio" - an Indian food health scanner app similar to Yuka.
+
+## Core Features:
+
+### 1. Barcode Scanner
+- Use ZXing library for barcode scanning
+- Support all standard barcode formats (EAN-13, EAN-8, UPC-A, QR)
+- Camera access with torch/flashlight toggle
+- Manual barcode entry option as fallback
+
+### 2. Product Database
+- Integrate Open Food Facts API (https://world.openfoodfacts.org/api/v0/product/{barcode}.json)
+- Local database of 25+ popular Indian products (Maggi, Parle-G, Amul Butter, Lay's, Haldiram's, MDH Masala, Tata Salt, Britannia, etc.)
+- If product not found, show "Add Product" option
+
+### 3. Health Scoring System
+- A to E grade (A=green, B=light green, C=yellow, D=orange, E=red)
+- Traffic light signal for Sugar, Salt, Fat, Calories
+- Score based on: Nutri-Score algorithm
+- Show detailed nutrition breakdown
+
+### 4. Product Badges
+- 🟢 Veg / 🔴 Non-Veg / 🌱 Vegan badge
+- Indian origin product badge (Swadeshi)
+- Ultra-processed food warning
+
+### 5. Ghar Ka Khana (Home Food Analyzer)
+- Manual input for homemade food
+- Select ingredients from list
+- Get approximate nutrition info
+- Common Indian dishes: Dal, Sabzi, Roti, Rice, Curry
+
+### 6. Fruits & Vegetables Scanner
+- Search by name
+- Show nutrition per 100g
+- Freshness tips
+
+### 7. User Authentication (Firebase)
+- Google Sign-in
+- Email/Password login
+- Guest mode (limited scans)
+
+### 8. Scan History
+- Save last 50 scans
+- Filter by grade
+- Firebase Firestore storage
+
+### 9. Hinglish UI
+- Mix of Hindi + English text
+- Example: "Yeh product healthy hai!" or "Scan karo, jaano kya khate ho"
+- Simple, friendly language
+
+### 10. PWA Support
+- Offline mode
+- Add to home screen
+- Fast loading
+
+## Tech Stack:
+- Frontend: React.js + Tailwind CSS
+- Barcode: ZXing (@zxing/library)
+- Database: Firebase Firestore
+- Auth: Firebase Authentication
+- API: Open Food Facts
+- PWA: Service Worker + Manifest
+
+## Design:
+- Primary color: #00C853 (green)
+- Clean, modern UI
+- Mobile-first design
+- Bottom navigation bar (Home, Scan, History, Profile)
+- Card-based product results
+
+## Indian Products Local Database (include these):
+Maggi Noodles, Parle-G Biscuits, Amul Butter, Lay's Classic, Haldiram's Bhujia, MDH Garam Masala, Tata Salt, Britannia Good Day, Kurkure, Dairy Milk, KitKat, Tropicana Juice, Aashirvaad Atta, Fortune Oil, Surf Excel, plus 10 more common items.
+
+## Important:
+- Make it fully functional, not just UI mockup
+- All buttons should work
+- Scanner should actually scan barcodes
+- Show loading states
+- Handle errors gracefully
+- Mobile responsive

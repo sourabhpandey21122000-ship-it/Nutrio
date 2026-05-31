@@ -3,13 +3,19 @@ info:
   # Do not change the title, if the title changes, the import paths will be broken
   title: Api
   version: 0.1.0
-  description: API specification
+  description: Nutrio - Indian food health scanner API
 servers:
   - url: /api
     description: Base API path
 tags:
   - name: health
     description: Health operations
+  - name: products
+    description: Product lookup and search
+  - name: fruits-veggies
+    description: Fruits and vegetables database
+  - name: home-foods
+    description: Ghar Ka Khana home food analyzer
 paths:
   /healthz:
     get:
@@ -24,6 +30,145 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/HealthStatus"
+
+  /products/barcode/{barcode}:
+    get:
+      operationId: getProductByBarcode
+      tags: [products]
+      summary: Look up product by barcode
+      description: Looks up product in local Indian DB first, then Open Food Facts API
+      parameters:
+        - name: barcode
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Product found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Product"
+        "404":
+          description: Product not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+
+  /products/search:
+    get:
+      operationId: searchProducts
+      tags: [products]
+      summary: Search products by name
+      parameters:
+        - name: q
+          in: query
+          required: true
+          schema:
+            type: string
+        - name: limit
+          in: query
+          required: false
+          schema:
+            type: integer
+            default: 20
+      responses:
+        "200":
+          description: Search results
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Product"
+
+  /fruits-veggies:
+    get:
+      operationId: listFruitsVeggies
+      tags: [fruits-veggies]
+      summary: List all fruits and vegetables with nutrition
+      responses:
+        "200":
+          description: List of fruits and vegetables
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/FruitVeggie"
+
+  /fruits-veggies/search:
+    get:
+      operationId: searchFruitsVeggies
+      tags: [fruits-veggies]
+      summary: Search fruits and vegetables by name
+      parameters:
+        - name: q
+          in: query
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Matching fruits and vegetables
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/FruitVeggie"
+
+  /home-foods/ingredients:
+    get:
+      operationId: listIngredients
+      tags: [home-foods]
+      summary: List all available ingredients for home food analyzer
+      responses:
+        "200":
+          description: List of ingredients
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Ingredient"
+
+  /home-foods/dishes:
+    get:
+      operationId: listDishes
+      tags: [home-foods]
+      summary: List common Indian dishes with preset ingredients
+      responses:
+        "200":
+          description: List of common Indian dishes
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Dish"
+
+  /home-foods/analyze:
+    post:
+      operationId: analyzeHomeMeal
+      tags: [home-foods]
+      summary: Analyze nutrition for a home-cooked meal
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/MealInput"
+      responses:
+        "200":
+          description: Nutrition analysis result
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/NutritionResult"
+
 components:
   schemas:
     HealthStatus:
@@ -34,3 +179,234 @@ components:
       required:
         - status
 
+    ErrorResponse:
+      type: object
+      properties:
+        error:
+          type: string
+      required:
+        - error
+
+    NutritionPer100g:
+      type: object
+      properties:
+        calories:
+          type: ["number", "null"]
+        fat:
+          type: ["number", "null"]
+        saturatedFat:
+          type: ["number", "null"]
+        carbohydrates:
+          type: ["number", "null"]
+        sugars:
+          type: ["number", "null"]
+        fiber:
+          type: ["number", "null"]
+        protein:
+          type: ["number", "null"]
+        salt:
+          type: ["number", "null"]
+        sodium:
+          type: ["number", "null"]
+
+    Product:
+      type: object
+      required:
+        - barcode
+        - name
+        - nutriScore
+      properties:
+        barcode:
+          type: string
+        name:
+          type: string
+        brand:
+          type: ["string", "null"]
+        imageUrl:
+          type: ["string", "null"]
+        category:
+          type: ["string", "null"]
+        nutriScore:
+          type: string
+          description: "A, B, C, D, or E"
+        isVeg:
+          type: ["boolean", "null"]
+        isVegan:
+          type: ["boolean", "null"]
+        isSwadeshi:
+          type: ["boolean", "null"]
+        isUltraProcessed:
+          type: ["boolean", "null"]
+        nutrition:
+          $ref: "#/components/schemas/NutritionPer100g"
+        ingredients:
+          type: ["string", "null"]
+        servingSize:
+          type: ["string", "null"]
+        source:
+          type: string
+          description: "local | openfoodfacts"
+
+    FruitVeggie:
+      type: object
+      required:
+        - id
+        - name
+        - nameHindi
+        - category
+        - nutrition
+      properties:
+        id:
+          type: string
+        name:
+          type: string
+        nameHindi:
+          type: string
+        category:
+          type: string
+          description: "fruit | vegetable | leafy | root"
+        imageEmoji:
+          type: string
+        nutrition:
+          $ref: "#/components/schemas/NutritionPer100g"
+        freshnessTips:
+          type: array
+          items:
+            type: string
+        season:
+          type: ["string", "null"]
+        benefits:
+          type: array
+          items:
+            type: string
+
+    Ingredient:
+      type: object
+      required:
+        - id
+        - name
+        - nameHindi
+        - category
+        - nutrition
+      properties:
+        id:
+          type: string
+        name:
+          type: string
+        nameHindi:
+          type: string
+        category:
+          type: string
+          description: "grain | lentil | vegetable | dairy | oil | spice | protein"
+        nutrition:
+          $ref: "#/components/schemas/NutritionPer100g"
+        defaultServingGrams:
+          type: number
+
+    Dish:
+      type: object
+      required:
+        - id
+        - name
+        - nameHindi
+        - ingredients
+      properties:
+        id:
+          type: string
+        name:
+          type: string
+        nameHindi:
+          type: string
+        description:
+          type: ["string", "null"]
+        imageEmoji:
+          type: string
+        ingredients:
+          type: array
+          items:
+            type: object
+            required:
+              - ingredientId
+              - grams
+            properties:
+              ingredientId:
+                type: string
+              grams:
+                type: number
+
+    MealIngredientItem:
+      type: object
+      required:
+        - ingredientId
+        - grams
+      properties:
+        ingredientId:
+          type: string
+        grams:
+          type: number
+
+    MealInput:
+      type: object
+      required:
+        - ingredients
+      properties:
+        mealName:
+          type: ["string", "null"]
+        servings:
+          type: number
+          default: 1
+        ingredients:
+          type: array
+          items:
+            $ref: "#/components/schemas/MealIngredientItem"
+
+    TrafficLight:
+      type: object
+      required:
+        - level
+        - label
+        - value
+      properties:
+        level:
+          type: string
+          description: "low | medium | high"
+        label:
+          type: string
+        value:
+          type: ["number", "null"]
+
+    NutritionResult:
+      type: object
+      required:
+        - mealName
+        - servings
+        - totalNutrition
+        - perServingNutrition
+        - nutriScore
+        - trafficLights
+      properties:
+        mealName:
+          type: string
+        servings:
+          type: number
+        totalNutrition:
+          $ref: "#/components/schemas/NutritionPer100g"
+        perServingNutrition:
+          $ref: "#/components/schemas/NutritionPer100g"
+        nutriScore:
+          type: string
+        trafficLights:
+          type: object
+          properties:
+            fat:
+              $ref: "#/components/schemas/TrafficLight"
+            sugar:
+              $ref: "#/components/schemas/TrafficLight"
+            salt:
+              $ref: "#/components/schemas/TrafficLight"
+            calories:
+              $ref: "#/components/schemas/TrafficLight"
+        tips:
+          type: array
+          items:
+            type: string
