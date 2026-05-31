@@ -85,6 +85,10 @@ function getProteinPoints(g: number): number {
 }
 
 export function calculateNutriScore(nutrition: Nutrition): string {
+  return calculateNutriScoreWithPoints(nutrition).grade;
+}
+
+export function calculateNutriScoreWithPoints(nutrition: Nutrition): { grade: string; points: number } {
   const calories = nutrition.calories ?? 0;
   const saturatedFat = nutrition.saturatedFat ?? 0;
   const sugars = nutrition.sugars ?? 0;
@@ -100,13 +104,19 @@ export function calculateNutriScore(nutrition: Nutrition): string {
 
   const positivePoints = getFiberPoints(fiber) + getProteinPoints(protein);
 
-  const score = negativePoints - positivePoints;
+  const rawScore = negativePoints - positivePoints;
 
-  if (score <= -1) return "A";
-  if (score <= 2) return "B";
-  if (score <= 10) return "C";
-  if (score <= 18) return "D";
-  return "E";
+  let grade: string;
+  if (rawScore <= -1) grade = "A";
+  else if (rawScore <= 2) grade = "B";
+  else if (rawScore <= 10) grade = "C";
+  else if (rawScore <= 18) grade = "D";
+  else grade = "E";
+
+  // Map raw score (-10 to +40) → health score (100 to 0, higher = healthier)
+  const points = Math.max(0, Math.min(100, Math.round(((40 - rawScore) / 50) * 100)));
+
+  return { grade, points };
 }
 
 export function getTrafficLightLevel(

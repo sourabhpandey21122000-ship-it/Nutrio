@@ -78,8 +78,8 @@ export default function Product() {
         <p className="text-muted-foreground text-center mb-4">{product.brand || "Unknown Brand"}</p>
 
         {/* Big Nutri-Score */}
-        <div className="absolute -bottom-8 shadow-xl rounded-full">
-          <NutriScore score={product.nutriScore} size="xl" />
+        <div className="absolute -bottom-10 shadow-xl rounded-full">
+          <NutriScore score={product.nutriScore} points={product.nutriScorePoints} size="xl" showPoints />
         </div>
       </div>
 

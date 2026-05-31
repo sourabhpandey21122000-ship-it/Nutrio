@@ -45,6 +45,8 @@ export interface Product {
   category?: string | null;
   /** A, B, C, D, or E */
   nutriScore: string;
+  /** Health score out of 100 (higher is healthier) */
+  nutriScorePoints?: number;
   /** @nullable */
   isVeg?: boolean | null;
   /** @nullable */

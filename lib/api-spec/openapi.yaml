@@ -229,6 +229,9 @@ components:
         nutriScore:
           type: string
           description: "A, B, C, D, or E"
+        nutriScorePoints:
+          type: integer
+          description: "Health score out of 100 (higher is healthier)"
         isVeg:
           type: ["boolean", "null"]
         isVegan:

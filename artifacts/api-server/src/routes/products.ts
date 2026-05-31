@@ -4,19 +4,20 @@ import {
   SearchProductsQueryParams,
 } from "@workspace/api-zod";
 import { indianProducts } from "../data/indianProducts";
-import { calculateNutriScore, buildTrafficLights } from "../lib/nutriScore";
+import { calculateNutriScoreWithPoints, buildTrafficLights } from "../lib/nutriScore";
 
 const router: IRouter = Router();
 
-function buildProductResponse(p: (typeof indianProducts)[0], nutriScore?: string) {
-  const score = nutriScore ?? calculateNutriScore(p.nutrition);
+function buildProductResponse(p: (typeof indianProducts)[0]) {
+  const { grade, points } = calculateNutriScoreWithPoints(p.nutrition);
   return {
     barcode: p.barcode,
     name: p.name,
     brand: p.brand,
     imageUrl: p.imageUrl,
     category: p.category,
-    nutriScore: score,
+    nutriScore: grade,
+    nutriScorePoints: points,
     isVeg: p.isVeg,
     isVegan: p.isVegan,
     isSwadeshi: p.isSwadeshi,
@@ -48,7 +49,7 @@ function mapOpenFoodFactsProduct(offData: Record<string, unknown>, barcode: stri
       : null,
   };
 
-  const nutriScore = calculateNutriScore(nutrition);
+  const { grade: nutriScore, points: nutriScorePoints } = calculateNutriScoreWithPoints(nutrition);
 
   return {
     barcode,
@@ -57,6 +58,7 @@ function mapOpenFoodFactsProduct(offData: Record<string, unknown>, barcode: stri
     imageUrl: (product.image_front_url as string | null) ?? (product.image_url as string | null) ?? null,
     category: (product.categories as string | null)?.split(",")[0]?.trim() ?? null,
     nutriScore,
+    nutriScorePoints,
     isVeg: null,
     isVegan: null,
     isSwadeshi: null,
