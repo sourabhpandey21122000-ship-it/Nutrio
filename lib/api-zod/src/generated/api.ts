@@ -50,7 +50,18 @@ export const GetProductByBarcodeResponse = zod.object({
 }).optional(),
   "ingredients": zod.string().nullish(),
   "servingSize": zod.string().nullish(),
-  "source": zod.string().optional().describe('local | openfoodfacts')
+  "source": zod.string().optional().describe('local | openfoodfacts'),
+  "tips": zod.array(zod.string()).optional(),
+  "ayurvedicNote": zod.string().nullish(),
+  "alternatives": zod.array(zod.object({
+  "barcode": zod.string(),
+  "name": zod.string(),
+  "brand": zod.string().nullish(),
+  "category": zod.string().nullish(),
+  "nutriScore": zod.string(),
+  "nutriScorePoints": zod.number(),
+  "reason": zod.string().optional()
+})).optional()
 })
 
 
@@ -89,7 +100,18 @@ export const SearchProductsResponseItem = zod.object({
 }).optional(),
   "ingredients": zod.string().nullish(),
   "servingSize": zod.string().nullish(),
-  "source": zod.string().optional().describe('local | openfoodfacts')
+  "source": zod.string().optional().describe('local | openfoodfacts'),
+  "tips": zod.array(zod.string()).optional(),
+  "ayurvedicNote": zod.string().nullish(),
+  "alternatives": zod.array(zod.object({
+  "barcode": zod.string(),
+  "name": zod.string(),
+  "brand": zod.string().nullish(),
+  "category": zod.string().nullish(),
+  "nutriScore": zod.string(),
+  "nutriScorePoints": zod.number(),
+  "reason": zod.string().optional()
+})).optional()
 })
 export const SearchProductsResponse = zod.array(SearchProductsResponseItem)
 

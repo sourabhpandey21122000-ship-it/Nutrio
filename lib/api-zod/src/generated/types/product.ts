@@ -6,6 +6,7 @@
  * OpenAPI spec version: 0.1.0
  */
 import type { NutritionPer100g } from './nutritionPer100g';
+import type { ProductSummary } from './productSummary';
 
 export interface Product {
   barcode: string;
@@ -35,4 +36,8 @@ export interface Product {
   servingSize?: string | null;
   /** local | openfoodfacts */
   source?: string;
+  tips?: string[];
+  /** @nullable */
+  ayurvedicNote?: string | null;
+  alternatives?: ProductSummary[];
 }

@@ -171,37 +171,123 @@ export function buildTrafficLights(nutrition: Nutrition) {
 export function generateHealthTips(nutriScore: string, nutrition: Nutrition): string[] {
   const tips: string[] = [];
 
-  if (nutriScore === "A" || nutriScore === "B") {
-    tips.push("Yeh product bahut healthy hai! Isko apni diet mein zaroor shamil karo.");
-  }
-  if (nutriScore === "D" || nutriScore === "E") {
-    tips.push("Yeh product occasionally hi khao — regular diet mein avoid karo.");
+  if (nutriScore === "A") {
+    tips.push("💚 Wah! Ekdum solid choice hai! Isko regularly khao — body aur mind dono kush rahenge.");
+  } else if (nutriScore === "B") {
+    tips.push("👍 Acchi choice hai bhai! Balanced diet ka perfect hissa ban sakta hai yeh.");
+  } else if (nutriScore === "C") {
+    tips.push("⚠️ Theek-thaak hai, lekin roz-roz mat khao. Week mein 2-3 baar se zyada nahi.");
+  } else if (nutriScore === "D") {
+    tips.push("🚨 Yaar, yeh sehat ke liye sahi nahi hai. Kabhi-kabhi thoda theek, lekin daily bilkul avoid karo.");
+  } else {
+    tips.push("🛑 Bhai ruk ja! Yeh product body ke liye nuksaan-deh hai. Iska healthier alternative dhundo.");
   }
 
   const salt = nutrition.salt ?? (nutrition.sodium ? nutrition.sodium / 400 : 0);
   if (salt > 1.5) {
-    tips.push("Namak zyada hai — blood pressure ke patients soche phir khayein.");
+    tips.push("🧂 Namak ki matra bahut zyada hai — BP wale log bilkul door rahein! Har din 5g se kam namak lena chahiye.");
+  } else if (salt > 0.3) {
+    tips.push("🧂 Thoda namak hai — din bhar aur zyada salty cheezein avoid karo iske saath.");
   }
 
   if ((nutrition.sugars ?? 0) > 22.5) {
-    tips.push("Sugar bahut zyada hai — diabetes patients ke liye suitable nahi.");
+    tips.push("🍭 Cheeni ki matra alarm-level par hai! Diabetes ya pre-diabetes mein strictly avoid karo. Blood sugar spike guaranteed.");
+  } else if ((nutrition.sugars ?? 0) > 5) {
+    tips.push("🍬 Sugar moderate level par hai — meetha khane ki craving satisfy karta hai, lekin limit mein raho.");
+  }
+
+  if ((nutrition.saturatedFat ?? 0) > 10) {
+    tips.push("❤️ Saturated fat bahut zyada hai — heart disease ka risk badhta hai. Roz khana dangerous ho sakta hai.");
+  } else if ((nutrition.saturatedFat ?? 0) > 5) {
+    tips.push("🫀 Saturated fat thoda high hai — heart ke liye dhyan rakhna zaroori hai.");
   }
 
   if ((nutrition.fiber ?? 0) >= 6) {
-    tips.push("Fiber ka achha source hai — digestion ke liye bahut accha!");
+    tips.push("🌾 Fiber ka zabardast source! Pet saaf, digestion smooth aur cholesterol control — trifecta!");
+  } else if ((nutrition.fiber ?? 0) < 1 && (nutrition.calories ?? 0) > 200) {
+    tips.push("📉 Fiber bilkul nahi hai — alag se fruits, veggies ya dals khakar fiber poori karo.");
   }
 
   if ((nutrition.protein ?? 0) >= 10) {
-    tips.push("Protein se bharpur hai — workout ke baad ek accha choice!");
+    tips.push("💪 Protein se mast loaded hai! Muscles ke liye, workout ke baad, ya active logon ke liye best.");
   }
 
-  if ((nutrition.saturatedFat ?? 0) > 5) {
-    tips.push("Saturated fat zyada hai — heart health ke liye kam khaana better hai.");
-  }
-
-  if (tips.length === 0) {
-    tips.push("Balanced diet ke hisse ke roop mein theek hai — portion size dhyan rakho.");
+  if ((nutrition.calories ?? 0) > 450) {
+    tips.push("🔥 Calories bahut high hain — ek choti serving mein hi din ka bada hissa khatam. Portion size strictly control karo!");
   }
 
   return tips;
+}
+
+const AYURVEDIC_MAP: Array<{ match: RegExp; note: string }> = [
+  {
+    match: /ghee|cow ghee/i,
+    note: "✨ Desi Ghee Ayurveda ka 'Amrit' hai! Agni (digestive fire) ko strengthen karta hai, brain function improve karta hai aur Vata-Pitta dono ko balance karta hai. Roz subah khaali peth ek chammach lena faydemand hai.",
+  },
+  {
+    match: /dairy|milk|doodh|paneer|curd|yogurt|doi/i,
+    note: "🐄 Ayurveda mein dairy ko 'Satvik aahar' maana jaata hai — pure aur consciousness-enhancing. Doodh Vata aur Pitta ko shant karta hai. Kapha prakriti waale log (weight gain-prone) moderation mein lein. Raat ko warm milk Ojas badhata hai.",
+  },
+  {
+    match: /spice|masala|garam masala|haldi|turmeric|jeera|coriander/i,
+    note: "🌶️ Masale Ayurvedic 'Dravyaguna Shastra' ke superhero hain! Haldi (curcumin) anti-inflammatory, jeera Agni badhata hai, kali mirch bioavailability improve karta hai. Roz khana banana mein inhe zaroor shamil karo.",
+  },
+  {
+    match: /tea|chai/i,
+    note: "☕ Chai Ayurveda mein 'Ushna Virya' (hot potency) wali hai — body warm aur alert rakhti hai. Adrak-elaichi-tulsi wali chai Vata-Kapha ke liye best. Pitta prakriti wale (acidity-prone) zyada mat piyo — din mein 2 cup kaafi.",
+  },
+  {
+    match: /coffee/i,
+    note: "☕ Coffee 'Tikta-Ushna' (bitter-hot) hai Ayurveda mein. Vata badhati hai aur excess mein anxiety deti hai. Pitta types avoid karein. Subah ek cup theek hai — baaki din herbal teas prefer karo.",
+  },
+  {
+    match: /whole wheat|atta|wheat flour|aashirvaad/i,
+    note: "🌾 Gehun (whole wheat) Ayurveda mein 'Brimhana' hai — strength aur nourishment deta hai. Whole wheat maida se hamesha superior — Agni smooth chalata hai aur constipation se bachata hai. Apni roti ka atta healthy rehna chahiye.",
+  },
+  {
+    match: /refined|maida|instant noodles|processed/i,
+    note: "⚠️ Refined flour (maida) Ayurveda mein 'Abhishyandi' hai — body mein 'Ama' (toxins) create karta hai. Digestion slow karta hai, Kapha badhata hai aur long-term mein tridosha disturb karta hai. Whole grain alternatives choose karo.",
+  },
+  {
+    match: /oil|sunflower|palm|refined oil/i,
+    note: "💧 Ayurveda mein tel ka choice prakriti ke hisab se hota hai: Sarson ka tel Vata ke liye (warming), Coconut tel Pitta ke liye (cooling), Sunflower moderate sabke liye. Cold-pressed oils refined se hamesha better hain.",
+  },
+  {
+    match: /juice|fruit juice/i,
+    note: "🍹 Packed juice mein 'Prana Shakti' (life energy) fresh fruit se bahut kam hoti hai — processing mein nutrients aur enzymes toot jaate hain. Ayurveda kehta hai fresh cut fruit khao, juice nahi. Agar peena hi hai toh ghar ka taaza nikala piyo.",
+  },
+  {
+    match: /dark chocolate|cocoa/i,
+    note: "🍫 Dark chocolate 'Tikta rasa' (bitter taste) wali hai — Ayurveda mein bitter taste liver cleanse karta hai aur Pitta-Kapha balance karta hai. 70%+ cocoa wala dark chocolate mein antioxidants aur magnesium hain. Thoda roz OK hai.",
+  },
+  {
+    match: /chocolate|candy|sweet/i,
+    note: "🍬 Meetha khaana 'Madhura rasa' se relate karta hai Ayurveda mein — thoda kaafi zyada Kapha badhata hai, lethargy aur weight gain ho sakta hai. Natural sweeteners jaise khajoor, gur prefer karo refined sugar ki jagah.",
+  },
+  {
+    match: /biscuit|cookie|cracker/i,
+    note: "🍪 Biscuits mein maida + sugar + trans fat ka combination Ayurveda mein 'Viruddha Aahar' (incompatible food) jaisa effect deta hai. Agni ko kamzor karta hai aur Ama create karta hai. Khakhara, makhana ya dry fruits better snack options hain.",
+  },
+  {
+    match: /chips|namkeen|sev|bhujia|snack|kurkure|lays/i,
+    note: "🧂 Fried namkeen Ayurveda mein 'Guru-Ruksha' (heavy-drying) hai — Vata badhata hai aur digestive fire ko overload karta hai. Makhana (fox nuts) ya roasted chana bahut healthier snack alternatives hain.",
+  },
+  {
+    match: /papad/i,
+    note: "🌱 Papad urad dal se bana hota hai jo protein aur fiber ka achha source hai. Ayurveda mein urad 'Brimhana' (nourishing) hai. Roasted papad fried se better — Vata shant karta hai aur digestion mein help karta hai.",
+  },
+];
+
+export function getAyurvedicNote(
+  category: string | null,
+  ingredients: string | null,
+  name: string
+): string {
+  const searchText = `${name} ${category ?? ""} ${ingredients ?? ""}`;
+
+  for (const { match, note } of AYURVEDIC_MAP) {
+    if (match.test(searchText)) return note;
+  }
+
+  return "🌿 Ayurveda kehta hai: 'Pathya' (suitable food) woh hai jo aapki prakriti (body type) aur Agni (digestive strength) ke hisab se sahi ho. Hamesha apni body ki sunno — koi bhi food zyada maat khao.";
 }

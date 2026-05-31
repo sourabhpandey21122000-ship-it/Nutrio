@@ -249,6 +249,39 @@ components:
         source:
           type: string
           description: "local | openfoodfacts"
+        tips:
+          type: array
+          items:
+            type: string
+        ayurvedicNote:
+          type: ["string", "null"]
+        alternatives:
+          type: array
+          items:
+            $ref: "#/components/schemas/ProductSummary"
+
+    ProductSummary:
+      type: object
+      required:
+        - barcode
+        - name
+        - nutriScore
+        - nutriScorePoints
+      properties:
+        barcode:
+          type: string
+        name:
+          type: string
+        brand:
+          type: ["string", "null"]
+        category:
+          type: ["string", "null"]
+        nutriScore:
+          type: string
+        nutriScorePoints:
+          type: integer
+        reason:
+          type: string
 
     FruitVeggie:
       type: object

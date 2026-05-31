@@ -18,6 +18,7 @@ export * from './nutritionPer100g';
 export * from './nutritionResult';
 export * from './nutritionResultTrafficLights';
 export * from './product';
+export * from './productSummary';
 export * from './searchFruitsVeggiesParams';
 export * from './searchProductsParams';
 export * from './trafficLight';

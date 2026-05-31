@@ -34,6 +34,18 @@ export interface NutritionPer100g {
   sodium?: number | null;
 }
 
+export interface ProductSummary {
+  barcode: string;
+  name: string;
+  /** @nullable */
+  brand?: string | null;
+  /** @nullable */
+  category?: string | null;
+  nutriScore: string;
+  nutriScorePoints: number;
+  reason?: string;
+}
+
 export interface Product {
   barcode: string;
   name: string;
@@ -62,6 +74,10 @@ export interface Product {
   servingSize?: string | null;
   /** local | openfoodfacts */
   source?: string;
+  tips?: string[];
+  /** @nullable */
+  ayurvedicNote?: string | null;
+  alternatives?: ProductSummary[];
 }
 
 export interface FruitVeggie {

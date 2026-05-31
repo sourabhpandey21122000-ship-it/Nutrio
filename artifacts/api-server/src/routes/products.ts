@@ -4,12 +4,74 @@ import {
   SearchProductsQueryParams,
 } from "@workspace/api-zod";
 import { indianProducts } from "../data/indianProducts";
-import { calculateNutriScoreWithPoints, buildTrafficLights } from "../lib/nutriScore";
+import {
+  calculateNutriScoreWithPoints,
+  generateHealthTips,
+  getAyurvedicNote,
+} from "../lib/nutriScore";
 
 const router: IRouter = Router();
 
+const GRADE_ORDER: Record<string, number> = { A: 0, B: 1, C: 2, D: 3, E: 4 };
+
+function buildAlternatives(
+  barcode: string,
+  category: string | null,
+  currentGrade: string,
+  currentPoints: number
+) {
+  if (!category) return [];
+
+  const candidates = indianProducts
+    .filter((p) => p.barcode !== barcode && p.category === category)
+    .map((p) => {
+      const { grade, points } = calculateNutriScoreWithPoints(p.nutrition);
+      return { p, grade, points };
+    })
+    .filter(({ grade }) => GRADE_ORDER[grade] < GRADE_ORDER[currentGrade])
+    .sort((a, b) => b.points - a.points)
+    .slice(0, 3);
+
+  if (candidates.length === 0) {
+    // Broaden: any category, strict grade better
+    return indianProducts
+      .filter((p) => p.barcode !== barcode)
+      .map((p) => {
+        const { grade, points } = calculateNutriScoreWithPoints(p.nutrition);
+        return { p, grade, points };
+      })
+      .filter(({ grade, points }) => GRADE_ORDER[grade] < GRADE_ORDER[currentGrade] && points > currentPoints + 10)
+      .sort((a, b) => b.points - a.points)
+      .slice(0, 3)
+      .map(({ p, grade, points }) => ({
+        barcode: p.barcode,
+        name: p.name,
+        brand: p.brand,
+        category: p.category,
+        nutriScore: grade,
+        nutriScorePoints: points,
+        reason: `Isse zyada healthy choice hai — Grade ${grade} (${points}/100)`,
+      }));
+  }
+
+  return candidates.map(({ p, grade, points }) => ({
+    barcode: p.barcode,
+    name: p.name,
+    brand: p.brand,
+    category: p.category,
+    nutriScore: grade,
+    nutriScorePoints: points,
+    reason: `Same category mein ${points}/100 score ke saath better option`,
+  }));
+}
+
 function buildProductResponse(p: (typeof indianProducts)[0]) {
   const { grade, points } = calculateNutriScoreWithPoints(p.nutrition);
+  const tips = generateHealthTips(grade, p.nutrition);
+  const ayurvedicNote = getAyurvedicNote(p.category, p.ingredients, p.name);
+  const needsAlternatives = grade === "D" || grade === "E";
+  const alternatives = needsAlternatives ? buildAlternatives(p.barcode, p.category, grade, points) : [];
+
   return {
     barcode: p.barcode,
     name: p.name,
@@ -26,6 +88,9 @@ function buildProductResponse(p: (typeof indianProducts)[0]) {
     ingredients: p.ingredients,
     servingSize: p.servingSize,
     source: "local" as const,
+    tips,
+    ayurvedicNote,
+    alternatives,
   };
 }
 
@@ -50,13 +115,20 @@ function mapOpenFoodFactsProduct(offData: Record<string, unknown>, barcode: stri
   };
 
   const { grade: nutriScore, points: nutriScorePoints } = calculateNutriScoreWithPoints(nutrition);
+  const name = (product.product_name as string) || (product.product_name_en as string) || "Unknown Product";
+  const category = (product.categories as string | null)?.split(",")[0]?.trim() ?? null;
+  const ingredients = (product.ingredients_text as string | null) ?? null;
+  const tips = generateHealthTips(nutriScore, nutrition);
+  const ayurvedicNote = getAyurvedicNote(category, ingredients, name);
+  const needsAlternatives = nutriScore === "D" || nutriScore === "E";
+  const alternatives = needsAlternatives ? buildAlternatives(barcode, category, nutriScore, nutriScorePoints) : [];
 
   return {
     barcode,
-    name: (product.product_name as string) || (product.product_name_en as string) || "Unknown Product",
+    name,
     brand: (product.brands as string | null) ?? null,
     imageUrl: (product.image_front_url as string | null) ?? (product.image_url as string | null) ?? null,
-    category: (product.categories as string | null)?.split(",")[0]?.trim() ?? null,
+    category,
     nutriScore,
     nutriScorePoints,
     isVeg: null,
@@ -64,9 +136,12 @@ function mapOpenFoodFactsProduct(offData: Record<string, unknown>, barcode: stri
     isSwadeshi: null,
     isUltraProcessed: null,
     nutrition,
-    ingredients: (product.ingredients_text as string | null) ?? null,
+    ingredients,
     servingSize: (product.serving_size as string | null) ?? null,
     source: "openfoodfacts" as const,
+    tips,
+    ayurvedicNote,
+    alternatives,
   };
 }
 
