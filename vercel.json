@@ -1,3 +1,9 @@
 {
-  "rootDirectory": "artifacts/nutrio"
+  "builds": [
+    {
+      "src": "artifacts/nutrio/package.json",
+      "use": "@vercel/static-build",
+      "config": { "distDir": "dist" }
+    }
+  ]
 }
