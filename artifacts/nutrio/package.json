@@ -59,6 +59,6 @@
   },
   "dependencies": {
     "@zxing/browser": "^0.2.0",
-    "@zxing/library": "^0.23.0"
+    "@zxing/library": "^0.22.0"
   }
 }
