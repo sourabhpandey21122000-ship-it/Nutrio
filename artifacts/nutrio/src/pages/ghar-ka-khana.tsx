@@ -1,331 +1,450 @@
-import { useState } from "react";
-import {
-  useListIngredients,
-  useListDishes,
-  useAnalyzeHomeMeal,
-  Ingredient,
-  Dish,
-  MealIngredientItem,
-  NutritionResult,
-} from "@workspace/api-client-react";
-import { NutriScore } from "@/components/ui/nutri-score";
-import { TrafficLight } from "@/components/ui/traffic-light";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { useEffect, useRef, useState, useCallback } from "react";
+import { useLocation } from "wouter";
+import { BrowserMultiFormatReader } from "@zxing/browser";
+import { DecodeHintType, BarcodeFormat } from "@zxing/library";
+import React from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Badge } from "@/components/ui/badge";
-import { Skeleton } from "@/components/ui/skeleton";
-import { Minus, Plus, Trash2, ChefHat, Utensils, Sparkles } from "lucide-react";
+import { Card, CardContent } from "@/components/ui/card";
+import { NutriScore } from "@/components/ui/nutri-score";
+import { ArrowLeft, Flashlight, ScanLine, Search, X, Keyboard } from "lucide-react";
 import { toast } from "sonner";
-import { motion, AnimatePresence } from "framer-motion";
+import { Link } from "wouter";
 
-interface SelectedIngredient extends MealIngredientItem {
+interface ProductSummary {
+  barcode: string;
   name: string;
-  nameHindi: string;
+  brand?: string;
+  category?: string;
+  nutriScore: string;
+  nutriScorePoints?: number;
+  isVeg?: boolean | null;
 }
 
-export default function GharKaKhana() {
-  const [mealName, setMealName] = useState("Ghar Ka Khana");
-  const [selected, setSelected] = useState<SelectedIngredient[]>([]);
-  const [result, setResult] = useState<NutritionResult | null>(null);
-  const [activeTab, setActiveTab] = useState<"ingredients" | "dishes">("dishes");
+function useSearchProducts(params: { q: string; limit: number }, options?: any) {
+  const [data, setData] = React.useState<ProductSummary[] | null>(null);
+  const [isLoading, setIsLoading] = React.useState(false);
 
-  const { data: ingredients, isLoading: loadingIngredients } = useListIngredients();
-  const { data: dishes, isLoading: loadingDishes } = useListDishes();
-  const { mutateAsync: analyzeMeal, isPending } = useAnalyzeHomeMeal();
+  React.useEffect(() => {
+    if (!options?.query?.enabled) return;
+    setIsLoading(true);
+    fetch(`/api/products/search?q=${encodeURIComponent(params.q)}&limit=${params.limit}`)
+      .then(r => r.json())
+      .then(d => { setData(d); setIsLoading(false); })
+      .catch(() => setIsLoading(false));
+  }, [params.q, params.limit, options?.query?.enabled]);
 
-  const addIngredient = (ing: Ingredient) => {
-    setSelected((prev) => {
-      const exists = prev.find((s) => s.ingredientId === ing.id);
-      if (exists) {
-        return prev.map((s) =>
-          s.ingredientId === ing.id
-            ? { ...s, grams: s.grams + (ing.defaultServingGrams ?? 50) }
-            : s
-        );
-      }
-      return [
-        ...prev,
-        {
-          ingredientId: ing.id,
-          grams: ing.defaultServingGrams ?? 50,
-          name: ing.name,
-          nameHindi: ing.nameHindi,
-        },
-      ];
-    });
-    setResult(null);
-  };
+  return { data, isLoading };
+}
 
-  const loadDish = (dish: Dish) => {
-    if (!ingredients) return;
-    const dishIngredients: SelectedIngredient[] = dish.ingredients.map((di) => {
-      const ing = ingredients.find((i) => i.id === di.ingredientId);
-      return {
-        ingredientId: di.ingredientId,
-        grams: di.grams,
-        name: ing?.name ?? di.ingredientId,
-        nameHindi: ing?.nameHindi ?? "",
-      };
-    });
-    setSelected(dishIngredients);
-    setMealName(dish.name);
-    setResult(null);
-    toast.success(`Loaded: ${dish.name}`);
-  };
+function getSearchProductsQueryKey(params: any) {
+  return ["search", params];
+}
 
-  const updateGrams = (id: string, delta: number) => {
-    setSelected((prev) =>
-      prev
-        .map((s) => (s.ingredientId === id ? { ...s, grams: Math.max(10, s.grams + delta) } : s))
-    );
-    setResult(null);
-  };
+type ScanState = "scanning" | "found" | "error";
 
-  const removeIngredient = (id: string) => {
-    setSelected((prev) => prev.filter((s) => s.ingredientId !== id));
-    setResult(null);
-  };
+export default function Scan() {
+  const [, setLocation] = useLocation();
+  const videoRef = useRef<HTMLVideoElement>(null);
+  const [torchOn, setTorchOn] = useState(false);
+  const [torchSupported, setTorchSupported] = useState(false);
+  const [scanState, setScanState] = useState<ScanState>("scanning");
+  const [manualInput, setManualInput] = useState("");
+  const [searchQuery, setSearchQuery] = useState("");
+  const [showManual, setShowManual] = useState(false);
+  const [mode, setMode] = useState<"barcode" | "name">("barcode");
+  const readerRef = useRef<BrowserMultiFormatReader | null>(null);
+  const lastScanRef = useRef<string>("");
+  const lastScanTimeRef = useRef<number>(0);
+  const streamRef = useRef<MediaStream | null>(null);
+  const initialPinchDist = useRef<number | null>(null);
+  const initialZoom = useRef<number>(1);
+  const currentZoom = useRef<number>(1);
 
-  const handleAnalyze = async () => {
-    if (selected.length === 0) {
-      toast.error("Pehle kuch ingredients add karo!");
-      return;
+  const [debouncedSearch, setDebouncedSearch] = useState("");
+  useEffect(() => {
+    const t = setTimeout(() => setDebouncedSearch(searchQuery), 400);
+    return () => clearTimeout(t);
+  }, [searchQuery]);
+
+  const searchParams = { q: debouncedSearch, limit: 8 };
+  const { data: searchResults, isLoading: searching } = useSearchProducts(
+    searchParams,
+    { query: { enabled: debouncedSearch.length >= 2, queryKey: getSearchProductsQueryKey(searchParams) } }
+  );
+
+  const stopCamera = useCallback(() => {
+    if (streamRef.current) {
+      streamRef.current.getTracks().forEach((t) => t.stop());
+      streamRef.current = null;
     }
+    if (readerRef.current) {
+      try { BrowserMultiFormatReader.releaseAllStreams(); } catch {}
+    }
+  }, []);
+
+  useEffect(() => {
+    let mounted = true;
+
+    const hints = new Map();
+    hints.set(DecodeHintType.POSSIBLE_FORMATS, [
+      BarcodeFormat.EAN_13,
+      BarcodeFormat.EAN_8,
+      BarcodeFormat.UPC_A,
+      BarcodeFormat.UPC_E,
+      BarcodeFormat.CODE_128,
+      BarcodeFormat.CODE_39,
+      BarcodeFormat.QR_CODE,
+    ]);
+    hints.set(DecodeHintType.TRY_HARDER, true);
+
+    const reader = new BrowserMultiFormatReader(hints, {
+      delayBetweenScanAttempts: 300,
+      delayBetweenScanSuccess: 1000,
+    });
+    readerRef.current = reader;
+
+    async function startCamera() {
+      try {
+        if (!videoRef.current) return;
+
+        const constraints: MediaStreamConstraints = {
+          video: {
+            facingMode: "environment",
+            width: { ideal: 1280 },
+            height: { ideal: 720 },
+          },
+        };
+
+        const stream = await navigator.mediaDevices.getUserMedia(constraints);
+        if (!mounted) { stream.getTracks().forEach((t) => t.stop()); return; }
+
+        streamRef.current = stream;
+        videoRef.current.srcObject = stream;
+        await videoRef.current.play();
+
+        const track = stream.getVideoTracks()[0];
+        const caps = track?.getCapabilities() as MediaTrackCapabilities & { torch?: boolean };
+        if (caps?.torch) setTorchSupported(true);
+
+        setupPinchZoom(track);
+
+        reader.decodeFromStream(stream, videoRef.current, (result, err) => {
+          if (!mounted) return;
+          if (result) {
+            const barcode = result.getText();
+            const now = Date.now();
+            if (barcode === lastScanRef.current && now - lastScanTimeRef.current < 3000) return;
+
+            lastScanRef.current = barcode;
+            lastScanTimeRef.current = now;
+            setScanState("found");
+
+            try {
+              const ctx = new AudioContext();
+              const osc = ctx.createOscillator();
+              const gain = ctx.createGain();
+              osc.connect(gain);
+              gain.connect(ctx.destination);
+              osc.frequency.value = 880;
+              gain.gain.setValueAtTime(0.3, ctx.currentTime);
+              gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.15);
+              osc.start(ctx.currentTime);
+              osc.stop(ctx.currentTime + 0.15);
+            } catch {}
+
+            setTimeout(() => {
+              if (mounted) {
+                stopCamera();
+                setLocation(`/product/${barcode}`);
+              }
+            }, 300);
+          }
+        });
+      } catch (err: unknown) {
+        if (!mounted) return;
+        const msg = err instanceof Error ? err.message : "Camera error";
+        if (msg.includes("Permission") || msg.includes("denied")) {
+          setScanState("error");
+          toast.error("Camera permission denied. Use manual search.");
+        } else {
+          setScanState("error");
+          toast.error("Camera not available.");
+        }
+        setShowManual(true);
+      }
+    }
+
+    startCamera();
+
+    return () => {
+      mounted = false;
+      stopCamera();
+    };
+  }, [setLocation, stopCamera]);
+
+  function setupPinchZoom(track: MediaStreamTrack | undefined) {
+    if (!track || !videoRef.current) return;
+    const el = videoRef.current;
+
+    el.addEventListener("touchstart", (e) => {
+      if (e.touches.length === 2) {
+        const dx = e.touches[0].clientX - e.touches[1].clientX;
+        const dy = e.touches[0].clientY - e.touches[1].clientY;
+        initialPinchDist.current = Math.sqrt(dx * dx + dy * dy);
+        initialZoom.current = currentZoom.current;
+      }
+    }, { passive: true });
+
+    el.addEventListener("touchmove", async (e) => {
+      if (e.touches.length === 2 && initialPinchDist.current) {
+        const dx = e.touches[0].clientX - e.touches[1].clientX;
+        const dy = e.touches[0].clientY - e.touches[1].clientY;
+        const dist = Math.sqrt(dx * dx + dy * dy);
+        const scale = dist / initialPinchDist.current;
+        const caps = track.getCapabilities() as MediaTrackCapabilities & { zoom?: { min: number; max: number; step: number } };
+        if (caps.zoom) {
+          const newZoom = Math.min(caps.zoom.max, Math.max(caps.zoom.min, initialZoom.current * scale));
+          currentZoom.current = newZoom;
+          try { await track.applyConstraints({ advanced: [{ zoom: newZoom } as MediaTrackConstraintSet] }); } catch {}
+        }
+      }
+    }, { passive: true });
+  }
+
+  const toggleTorch = async () => {
     try {
-      const res = await analyzeMeal({
-        data: {
-          mealName,
-          servings: 1,
-          ingredients: selected.map(({ ingredientId, grams }) => ({ ingredientId, grams })),
-        },
-      });
-      setResult(res);
+      const track = streamRef.current?.getVideoTracks()[0];
+      if (!track) return;
+      const newVal = !torchOn;
+      await track.applyConstraints({ advanced: [{ torch: newVal } as MediaTrackConstraintSet] });
+      setTorchOn(newVal);
     } catch {
-      toast.error("Analysis failed. Please try again.");
+      toast.error("Torch supported nahi hai is device par");
+    }
+  };
+
+  const handleBarcodeSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    const v = manualInput.trim();
+    if (!v) return;
+    if (/^\d{8,13}$/.test(v)) {
+      stopCamera();
+      setLocation(`/product/${v}`);
+    } else {
+      toast.error("Valid barcode enter karo (8-13 digits)");
     }
   };
 
   return (
-    <div className="flex flex-col h-full p-4 gap-4">
-      <header className="pt-4">
-        <h1 className="text-2xl font-bold flex items-center gap-2">
-          <Utensils className="text-primary" size={22} /> Ghar Ka Khana
-        </h1>
-        <p className="text-muted-foreground text-sm">Apne dish ka nutrition analyze karo</p>
-      </header>
+    <div className="flex flex-col h-full bg-black text-white relative overflow-hidden">
+      {/* Top bar */}
+      <div className="absolute top-0 left-0 right-0 z-20 p-3 flex justify-between items-center bg-gradient-to-b from-black/80 to-transparent">
+        <Button
+          variant="ghost" size="icon"
+          className="text-white hover:bg-white/20 rounded-full"
+          onClick={() => { stopCamera(); setLocation("/"); }}
+        >
+          <ArrowLeft />
+        </Button>
 
-      {/* Meal Name */}
-      <Input
-        data-testid="input-meal-name"
-        value={mealName}
-        onChange={(e) => setMealName(e.target.value)}
-        placeholder="Meal ka naam (e.g. Dal Chawal)"
-        className="h-11"
-      />
-
-      {/* Tabs */}
-      <div className="flex gap-1 p-1 bg-muted rounded-lg">
-        {(["dishes", "ingredients"] as const).map((tab) => (
-          <button
-            key={tab}
-            data-testid={`tab-${tab}`}
-            onClick={() => setActiveTab(tab)}
-            className={`flex-1 py-2 text-sm font-medium rounded-md transition-all ${
-              activeTab === tab
-                ? "bg-background shadow-sm text-foreground"
-                : "text-muted-foreground hover:text-foreground"
-            }`}
-          >
-            {tab === "dishes" ? "🍛 Popular Dishes" : "🧂 Ingredients"}
-          </button>
-        ))}
-      </div>
-
-      {/* Content */}
-      <div className="flex-1 overflow-auto -mx-4 px-4 space-y-2 pb-4">
-        {activeTab === "dishes" ? (
-          loadingDishes ? (
-            <div className="space-y-2">
-              {[1, 2, 3].map((i) => <Skeleton key={i} className="h-16 w-full rounded-xl" />)}
-            </div>
-          ) : (
-            (dishes ?? []).map((dish) => (
-              <Card
-                key={dish.id}
-                data-testid={`card-dish-${dish.id}`}
-                className="cursor-pointer hover:border-primary/40 transition-colors active:scale-[0.98] transition-transform"
-                onClick={() => loadDish(dish)}
-              >
-                <CardContent className="p-3 flex items-center gap-3">
-                  <span className="text-3xl">{dish.imageEmoji || "🍽️"}</span>
-                  <div className="flex-1">
-                    <p className="font-semibold text-sm">{dish.name}</p>
-                    <p className="text-xs text-muted-foreground">{dish.nameHindi}</p>
-                    {dish.description && (
-                      <p className="text-xs text-muted-foreground/70 mt-0.5 line-clamp-1">{dish.description}</p>
-                    )}
-                  </div>
-                  <Badge variant="outline" className="text-xs flex-shrink-0">{dish.ingredients.length} items</Badge>
-                </CardContent>
-              </Card>
-            ))
-          )
-        ) : loadingIngredients ? (
-          <div className="space-y-2">
-            {[1, 2, 3, 4].map((i) => <Skeleton key={i} className="h-14 w-full rounded-xl" />)}
-          </div>
-        ) : (
-          (ingredients ?? []).map((ing) => (
-            <Card
-              key={ing.id}
-              data-testid={`card-ing-${ing.id}`}
-              className="cursor-pointer hover:border-primary/40 transition-colors active:scale-[0.98] transition-transform"
-              onClick={() => addIngredient(ing)}
+        <div className="flex items-center gap-2">
+          <div className="flex bg-black/40 backdrop-blur-sm rounded-full p-1 text-xs gap-1">
+            <button
+              onClick={() => setMode("barcode")}
+              className={`px-3 py-1 rounded-full transition-all ${mode === "barcode" ? "bg-primary text-white" : "text-white/70"}`}
             >
-              <CardContent className="p-3 flex items-center gap-3">
-                <div className="flex-1 min-w-0">
-                  <p className="font-semibold text-sm">{ing.name}</p>
-                  <p className="text-xs text-muted-foreground">{ing.nameHindi} · {ing.category}</p>
-                </div>
-                <div className="text-right flex-shrink-0">
-                  <p className="text-sm font-bold text-primary">{ing.nutrition.calories ?? "?"}kcal</p>
-                  <p className="text-xs text-muted-foreground">/{ing.defaultServingGrams ?? 100}g</p>
-                </div>
-                <Plus size={18} className="text-primary flex-shrink-0" />
-              </CardContent>
-            </Card>
-          ))
-        )}
-      </div>
-
-      {/* Selected Basket */}
-      {selected.length > 0 && (
-        <div className="border rounded-xl p-3 bg-muted/30 space-y-2">
-          <p className="text-sm font-semibold flex items-center gap-2">
-            <ChefHat size={16} className="text-primary" />
-            Selected ({selected.length})
-          </p>
-          <div className="space-y-1.5">
-            <AnimatePresence>
-              {selected.map((s) => (
-                <motion.div
-                  key={s.ingredientId}
-                  initial={{ opacity: 0, y: -5 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  exit={{ opacity: 0, height: 0 }}
-                  className="flex items-center gap-2 bg-background rounded-lg p-2 border"
-                >
-                  <div className="flex-1 min-w-0">
-                    <p className="text-xs font-medium truncate">{s.name}</p>
-                    <p className="text-xs text-muted-foreground">{s.nameHindi}</p>
-                  </div>
-                  <div className="flex items-center gap-1">
-                    <button
-                      data-testid={`btn-dec-${s.ingredientId}`}
-                      onClick={() => updateGrams(s.ingredientId, -25)}
-                      className="w-6 h-6 bg-muted rounded-full flex items-center justify-center hover:bg-muted/70"
-                    >
-                      <Minus size={10} />
-                    </button>
-                    <span className="text-xs font-mono w-12 text-center">{s.grams}g</span>
-                    <button
-                      data-testid={`btn-inc-${s.ingredientId}`}
-                      onClick={() => updateGrams(s.ingredientId, 25)}
-                      className="w-6 h-6 bg-muted rounded-full flex items-center justify-center hover:bg-muted/70"
-                    >
-                      <Plus size={10} />
-                    </button>
-                  </div>
-                  <button
-                    data-testid={`btn-remove-${s.ingredientId}`}
-                    onClick={() => removeIngredient(s.ingredientId)}
-                    className="p-1 text-muted-foreground hover:text-destructive rounded"
-                  >
-                    <Trash2 size={14} />
-                  </button>
-                </motion.div>
-              ))}
-            </AnimatePresence>
+              📷 Scan
+            </button>
+            <button
+              onClick={() => setMode("name")}
+              className={`px-3 py-1 rounded-full transition-all ${mode === "name" ? "bg-primary text-white" : "text-white/70"}`}
+            >
+              🔍 Search
+            </button>
           </div>
 
-          <Button
-            data-testid="button-analyze"
-            onClick={handleAnalyze}
-            disabled={isPending}
-            className="w-full bg-primary h-12 font-semibold"
-          >
-            {isPending ? (
-              <span className="flex items-center gap-2">
-                <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
-                Analyzing...
-              </span>
-            ) : (
-              <span className="flex items-center gap-2">
-                <Sparkles size={18} /> Analyze Nutrition
-              </span>
+          {torchSupported && mode === "barcode" && (
+            <Button
+              variant="ghost" size="icon"
+              className={`text-white hover:bg-white/20 rounded-full ${torchOn ? "text-yellow-400" : ""}`}
+              onClick={toggleTorch}
+            >
+              <Flashlight size={20} />
+            </Button>
+          )}
+        </div>
+      </div>
+
+      {mode === "barcode" ? (
+        <>
+          <div className="flex-1 relative overflow-hidden flex items-center justify-center bg-zinc-950">
+            <video
+              ref={videoRef}
+              className="absolute inset-0 w-full h-full object-cover"
+              playsInline muted autoPlay
+            />
+
+            <div className="absolute inset-0 z-10 pointer-events-none">
+              <div className="absolute inset-0 bg-black/45" />
+              <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-72 h-52 bg-transparent"
+                style={{ boxShadow: "0 0 0 2000px rgba(0,0,0,0.45)" }} />
+            </div>
+
+            <div className={`relative z-20 w-72 h-52 transition-all duration-300 ${scanState === "found" ? "scale-105" : ""}`}>
+              <div className={`absolute top-0 left-0 w-6 h-6 border-t-3 border-l-3 rounded-tl-md transition-colors ${scanState === "found" ? "border-green-400" : "border-primary"}`}
+                style={{ borderTopWidth: 3, borderLeftWidth: 3 }} />
+              <div className={`absolute top-0 right-0 w-6 h-6 border-t-3 border-r-3 rounded-tr-md transition-colors ${scanState === "found" ? "border-green-400" : "border-primary"}`}
+                style={{ borderTopWidth: 3, borderRightWidth: 3 }} />
+              <div className={`absolute bottom-0 left-0 w-6 h-6 border-b-3 border-l-3 rounded-bl-md transition-colors ${scanState === "found" ? "border-green-400" : "border-primary"}`}
+                style={{ borderBottomWidth: 3, borderLeftWidth: 3 }} />
+              <div className={`absolute bottom-0 right-0 w-6 h-6 border-b-3 border-r-3 rounded-br-md transition-colors ${scanState === "found" ? "border-green-400" : "border-primary"}`}
+                style={{ borderBottomWidth: 3, borderRightWidth: 3 }} />
+
+              {scanState === "scanning" && (
+                <div className="absolute inset-0 overflow-hidden">
+                  <div className="w-full h-0.5 bg-primary/90 shadow-[0_0_8px_2px_rgba(34,197,94,0.5)] animate-scan" />
+                </div>
+              )}
+
+              {scanState === "found" && (
+                <div className="absolute inset-0 flex items-center justify-center">
+                  <div className="bg-green-500/90 rounded-full p-3 animate-bounce">
+                    <ScanLine size={28} className="text-white" />
+                  </div>
+                </div>
+              )}
+            </div>
+
+            <p className="absolute bottom-4 left-0 right-0 text-center z-20 text-white/50 text-xs">
+              📍 Pinch to zoom • Auto-scans continuously
+            </p>
+          </div>
+
+          <div className="bg-zinc-950 px-5 pt-5 pb-6 rounded-t-3xl z-10 -mt-5 relative space-y-4">
+            <div className="w-12 h-1 bg-zinc-700 rounded-full mx-auto" />
+
+            <div className="text-center space-y-1">
+              <p className="text-white font-semibold text-sm">
+                {scanState === "found" ? "✅ Barcode Mila! Redirect ho raha hai..." :
+                 scanState === "error" ? "⚠️ Camera nahi mili — manual try karo" :
+                 "📦 Product ka barcode frame mein rakh do"}
+              </p>
+              <p className="text-zinc-500 text-xs">EAN-13 • UPC • QR supported</p>
+            </div>
+
+            <div>
+              <button
+                onClick={() => setShowManual((v) => !v)}
+                className="flex items-center gap-2 text-zinc-400 text-xs mb-3"
+              >
+                <Keyboard size={13} />
+                Barcode manually type karo
+              </button>
+
+              {showManual && (
+                <form onSubmit={handleBarcodeSubmit} className="flex gap-2">
+                  <Input
+                    type="number"
+                    placeholder="8901234567890 (EAN-13)"
+                    value={manualInput}
+                    onChange={(e) => setManualInput(e.target.value)}
+                    className="bg-zinc-900 border-zinc-700 text-white placeholder:text-zinc-600 h-12 [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
+                  />
+                  <Button type="submit" className="h-12 px-4 bg-primary">
+                    <ScanLine size={18} />
+                  </Button>
+                </form>
+              )}
+            </div>
+          </div>
+        </>
+      ) : (
+        <div className="flex-1 bg-zinc-950 pt-20 px-4 overflow-auto">
+          <div className="space-y-4">
+            <div>
+              <h2 className="text-white text-lg font-bold mb-1">Product Search 🔍</h2>
+              <p className="text-zinc-400 text-xs mb-3">Product ka naam ya brand type karo</p>
+
+              <div className="relative">
+                <Search size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-zinc-400" />
+                <Input
+                  autoFocus
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                  placeholder="e.g. Maggi, Amul, Dahi..."
+                  className="bg-zinc-900 border-zinc-700 text-white placeholder:text-zinc-500 h-12 pl-9 pr-10"
+                />
+                {searchQuery && (
+                  <button
+                    onClick={() => setSearchQuery("")}
+                    className="absolute right-3 top-1/2 -translate-y-1/2 text-zinc-400"
+                  >
+                    <X size={16} />
+                  </button>
+                )}
+              </div>
+            </div>
+
+            {searching && (
+              <div className="space-y-2">
+                {[1, 2, 3].map((i) => (
+                  <div key={i} className="h-16 bg-zinc-900 rounded-xl animate-pulse" />
+                ))}
+              </div>
             )}
-          </Button>
+
+            {!searching && searchResults && searchResults.length === 0 && debouncedSearch.length >= 2 && (
+              <div className="text-center py-8 text-zinc-500">
+                <p className="text-2xl mb-2">😕</p>
+                <p className="text-sm">"{debouncedSearch}" nahi mila</p>
+                <p className="text-xs mt-1">Barcode scan karo ya dusra naam try karo</p>
+              </div>
+            )}
+
+            {searchResults && searchResults.length > 0 && (
+              <div className="space-y-2">
+                <p className="text-zinc-400 text-xs">{searchResults.length} results mile</p>
+                {searchResults.map((product) => (
+                  <Link key={product.barcode} href={`/product/${product.barcode}`} onClick={stopCamera}>
+                    <Card className="bg-zinc-900 border-zinc-700 hover:border-primary/50 cursor-pointer active:scale-[0.98] transition-all mb-2">
+                      <CardContent className="p-3 flex items-center gap-3">
+                        <NutriScore score={product.nutriScore} points={product.nutriScorePoints} size="md" showPoints />
+                        <div className="flex-1 min-w-0">
+                          <p className="text-white font-medium text-sm truncate">{product.name}</p>
+                          <p className="text-zinc-400 text-xs truncate">{product.brand || product.category || "—"}</p>
+                        </div>
+                        {product.isVeg !== undefined && product.isVeg !== null && (
+                          <div className={`w-5 h-5 rounded border-2 flex-shrink-0 flex items-center justify-center ${product.isVeg ? "border-green-500" : "border-red-500"}`}>
+                            <div className={`w-2 h-2 rounded-full ${product.isVeg ? "bg-green-500" : "bg-red-500"}`} />
+                          </div>
+                        )}
+                      </CardContent>
+                    </Card>
+                  </Link>
+                ))}
+              </div>
+            )}
+
+            {debouncedSearch.length < 2 && (
+              <div className="text-center py-12 text-zinc-600">
+                <Search size={40} className="mx-auto mb-3 opacity-30" />
+                <p className="text-sm">Naam type karna shuru karo...</p>
+                <p className="text-xs mt-1">Minimum 2 characters chahiye</p>
+              </div>
+            )}
+          </div>
         </div>
       )}
 
-      {/* Result */}
-      {result && (
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          className="space-y-4 pb-4"
-        >
-          <Card className="border-primary/30 bg-primary/5">
-            <CardHeader className="pb-2">
-              <CardTitle className="text-base flex items-center justify-between">
-                <span>{result.mealName}</span>
-                <NutriScore score={result.nutriScore} size="md" />
-              </CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              <div className="grid grid-cols-3 gap-2">
-                {[
-                  { label: "Calories", val: result.perServingNutrition.calories, unit: "kcal" },
-                  { label: "Protein", val: result.perServingNutrition.protein, unit: "g" },
-                  { label: "Carbs", val: result.perServingNutrition.carbohydrates, unit: "g" },
-                  { label: "Fat", val: result.perServingNutrition.fat, unit: "g" },
-                  { label: "Fiber", val: result.perServingNutrition.fiber, unit: "g" },
-                  { label: "Salt", val: result.perServingNutrition.salt, unit: "g" },
-                ].map(({ label, val, unit }) => (
-                  <div key={label} className="text-center bg-background rounded-xl p-2 border">
-                    <p className="text-sm font-bold">{val != null ? `${val}${unit}` : "-"}</p>
-                    <p className="text-xs text-muted-foreground">{label}</p>
-                  </div>
-                ))}
-              </div>
-
-              <div className="space-y-2">
-                {Object.values(result.trafficLights).map((tl) =>
-                  tl ? (
-                    <TrafficLight
-                      key={tl.label}
-                      label={tl.label}
-                      value={tl.value}
-                      level={tl.level}
-                      unit={tl.label === "Calories" ? " kcal" : "g"}
-                    />
-                  ) : null
-                )}
-              </div>
-
-              {result.tips && result.tips.length > 0 && (
-                <div className="bg-amber-50 border border-amber-200 rounded-xl p-3 space-y-1">
-                  <p className="text-xs font-semibold text-amber-800">💡 Health Tips</p>
-                  {result.tips.map((tip) => (
-                    <p key={tip} className="text-xs text-amber-700">{tip}</p>
-                  ))}
-                </div>
-              )}
-            </CardContent>
-          </Card>
-        </motion.div>
-      )}
+      <style dangerouslySetInnerHTML={{ __html: `
+        @keyframes scan {
+          0% { transform: translateY(-100px); }
+          50% { transform: translateY(100px); }
+          100% { transform: translateY(-100px); }
+        }
+        .animate-scan { animation: scan 2.5s ease-in-out infinite; }
+      `}} />
     </div>
   );
 }
