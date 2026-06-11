@@ -1,5 +1,5 @@
 import { useParams, useLocation } from "wouter";
-import { useGetProductByBarcode, getGetProductByBarcodeQueryKey, ProductSummary } from "@workspace/api-client-react";
+import React from "react";
 import { NutriScore } from "@/components/ui/nutri-score";
 import { TrafficLight } from "@/components/ui/traffic-light";
 import { Button } from "@/components/ui/button";
@@ -10,6 +10,36 @@ import { toast } from "sonner";
 import { Badge } from "@/components/ui/badge";
 import { Link } from "wouter";
 import { motion } from "framer-motion";
+
+interface ProductSummary {
+  barcode: string;
+  name: string;
+  brand?: string;
+  category?: string;
+  nutriScore: string;
+  nutriScorePoints?: number;
+  reason?: string;
+}
+
+function useGetProductByBarcode(barcode: string, _options?: any) {
+  const [data, setData] = React.useState<any>(null);
+  const [isLoading, setIsLoading] = React.useState(true);
+  const [error, setError] = React.useState<any>(null);
+
+  React.useEffect(() => {
+    if (!barcode) return;
+    fetch(`/api/products/${barcode}`)
+      .then(r => r.json())
+      .then(d => { setData(d); setIsLoading(false); })
+      .catch(e => { setError(e); setIsLoading(false); });
+  }, [barcode]);
+
+  return { data, isLoading, error };
+}
+
+function getGetProductByBarcodeQueryKey(barcode: string) {
+  return ["product", barcode];
+}
 
 // ── Gen Z Hinglish grade vibes ───────────────────────────────────────────────
 const GRADE_VIBE: Record<string, { headline: string; sub: string; bg: string; text: string; border: string }> = {
