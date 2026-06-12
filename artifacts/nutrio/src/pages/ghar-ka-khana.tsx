@@ -1,450 +1,222 @@
-import { useEffect, useRef, useState, useCallback } from "react";
+import { useState } from "react";
 import { useLocation } from "wouter";
-import { BrowserMultiFormatReader } from "@zxing/browser";
-import { DecodeHintType, BarcodeFormat } from "@zxing/library";
-import React from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent } from "@/components/ui/card";
-import { NutriScore } from "@/components/ui/nutri-score";
-import { ArrowLeft, Flashlight, ScanLine, Search, X, Keyboard } from "lucide-react";
+import { ArrowLeft, Utensils, Plus, Trash2 } from "lucide-react";
 import { toast } from "sonner";
-import { Link } from "wouter";
 
-interface ProductSummary {
-  barcode: string;
+interface Ingredient {
+  id: string;
   name: string;
-  brand?: string;
-  category?: string;
-  nutriScore: string;
-  nutriScorePoints?: number;
-  isVeg?: boolean | null;
+  amount: string;
 }
 
-function useSearchProducts(params: { q: string; limit: number }, options?: any) {
-  const [data, setData] = React.useState<ProductSummary[] | null>(null);
-  const [isLoading, setIsLoading] = React.useState(false);
-
-  React.useEffect(() => {
-    if (!options?.query?.enabled) return;
-    setIsLoading(true);
-    fetch(`/api/products/search?q=${encodeURIComponent(params.q)}&limit=${params.limit}`)
-      .then(r => r.json())
-      .then(d => { setData(d); setIsLoading(false); })
-      .catch(() => setIsLoading(false));
-  }, [params.q, params.limit, options?.query?.enabled]);
-
-  return { data, isLoading };
+interface NutritionResult {
+  calories: number;
+  protein: number;
+  carbs: number;
+  fat: number;
+  fiber: number;
+  grade: string;
+  gradeColor: string;
+  summary: string;
 }
 
-function getSearchProductsQueryKey(params: any) {
-  return ["search", params];
-}
-
-type ScanState = "scanning" | "found" | "error";
-
-export default function Scan() {
-  const [, setLocation] = useLocation();
-  const videoRef = useRef<HTMLVideoElement>(null);
-  const [torchOn, setTorchOn] = useState(false);
-  const [torchSupported, setTorchSupported] = useState(false);
-  const [scanState, setScanState] = useState<ScanState>("scanning");
-  const [manualInput, setManualInput] = useState("");
-  const [searchQuery, setSearchQuery] = useState("");
-  const [showManual, setShowManual] = useState(false);
-  const [mode, setMode] = useState<"barcode" | "name">("barcode");
-  const readerRef = useRef<BrowserMultiFormatReader | null>(null);
-  const lastScanRef = useRef<string>("");
-  const lastScanTimeRef = useRef<number>(0);
-  const streamRef = useRef<MediaStream | null>(null);
-  const initialPinchDist = useRef<number | null>(null);
-  const initialZoom = useRef<number>(1);
-  const currentZoom = useRef<number>(1);
-
-  const [debouncedSearch, setDebouncedSearch] = useState("");
-  useEffect(() => {
-    const t = setTimeout(() => setDebouncedSearch(searchQuery), 400);
-    return () => clearTimeout(t);
-  }, [searchQuery]);
-
-  const searchParams = { q: debouncedSearch, limit: 8 };
-  const { data: searchResults, isLoading: searching } = useSearchProducts(
-    searchParams,
-    { query: { enabled: debouncedSearch.length >= 2, queryKey: getSearchProductsQueryKey(searchParams) } }
-  );
-
-  const stopCamera = useCallback(() => {
-    if (streamRef.current) {
-      streamRef.current.getTracks().forEach((t) => t.stop());
-      streamRef.current = null;
-    }
-    if (readerRef.current) {
-      try { BrowserMultiFormatReader.releaseAllStreams(); } catch {}
-    }
-  }, []);
-
-  useEffect(() => {
-    let mounted = true;
-
-    const hints = new Map();
-    hints.set(DecodeHintType.POSSIBLE_FORMATS, [
-      BarcodeFormat.EAN_13,
-      BarcodeFormat.EAN_8,
-      BarcodeFormat.UPC_A,
-      BarcodeFormat.UPC_E,
-      BarcodeFormat.CODE_128,
-      BarcodeFormat.CODE_39,
-      BarcodeFormat.QR_CODE,
-    ]);
-    hints.set(DecodeHintType.TRY_HARDER, true);
-
-    const reader = new BrowserMultiFormatReader(hints, {
-      delayBetweenScanAttempts: 300,
-      delayBetweenScanSuccess: 1000,
-    });
-    readerRef.current = reader;
-
-    async function startCamera() {
-      try {
-        if (!videoRef.current) return;
-
-        const constraints: MediaStreamConstraints = {
-          video: {
-            facingMode: "environment",
-            width: { ideal: 1280 },
-            height: { ideal: 720 },
-          },
-        };
-
-        const stream = await navigator.mediaDevices.getUserMedia(constraints);
-        if (!mounted) { stream.getTracks().forEach((t) => t.stop()); return; }
-
-        streamRef.current = stream;
-        videoRef.current.srcObject = stream;
-        await videoRef.current.play();
-
-        const track = stream.getVideoTracks()[0];
-        const caps = track?.getCapabilities() as MediaTrackCapabilities & { torch?: boolean };
-        if (caps?.torch) setTorchSupported(true);
-
-        setupPinchZoom(track);
-
-        reader.decodeFromStream(stream, videoRef.current, (result, err) => {
-          if (!mounted) return;
-          if (result) {
-            const barcode = result.getText();
-            const now = Date.now();
-            if (barcode === lastScanRef.current && now - lastScanTimeRef.current < 3000) return;
-
-            lastScanRef.current = barcode;
-            lastScanTimeRef.current = now;
-            setScanState("found");
-
-            try {
-              const ctx = new AudioContext();
-              const osc = ctx.createOscillator();
-              const gain = ctx.createGain();
-              osc.connect(gain);
-              gain.connect(ctx.destination);
-              osc.frequency.value = 880;
-              gain.gain.setValueAtTime(0.3, ctx.currentTime);
-              gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.15);
-              osc.start(ctx.currentTime);
-              osc.stop(ctx.currentTime + 0.15);
-            } catch {}
-
-            setTimeout(() => {
-              if (mounted) {
-                stopCamera();
-                setLocation(`/product/${barcode}`);
-              }
-            }, 300);
-          }
-        });
-      } catch (err: unknown) {
-        if (!mounted) return;
-        const msg = err instanceof Error ? err.message : "Camera error";
-        if (msg.includes("Permission") || msg.includes("denied")) {
-          setScanState("error");
-          toast.error("Camera permission denied. Use manual search.");
-        } else {
-          setScanState("error");
-          toast.error("Camera not available.");
-        }
-        setShowManual(true);
-      }
-    }
-
-    startCamera();
-
-    return () => {
-      mounted = false;
-      stopCamera();
-    };
-  }, [setLocation, stopCamera]);
-
-  function setupPinchZoom(track: MediaStreamTrack | undefined) {
-    if (!track || !videoRef.current) return;
-    const el = videoRef.current;
-
-    el.addEventListener("touchstart", (e) => {
-      if (e.touches.length === 2) {
-        const dx = e.touches[0].clientX - e.touches[1].clientX;
-        const dy = e.touches[0].clientY - e.touches[1].clientY;
-        initialPinchDist.current = Math.sqrt(dx * dx + dy * dy);
-        initialZoom.current = currentZoom.current;
-      }
-    }, { passive: true });
-
-    el.addEventListener("touchmove", async (e) => {
-      if (e.touches.length === 2 && initialPinchDist.current) {
-        const dx = e.touches[0].clientX - e.touches[1].clientX;
-        const dy = e.touches[0].clientY - e.touches[1].clientY;
-        const dist = Math.sqrt(dx * dx + dy * dy);
-        const scale = dist / initialPinchDist.current;
-        const caps = track.getCapabilities() as MediaTrackCapabilities & { zoom?: { min: number; max: number; step: number } };
-        if (caps.zoom) {
-          const newZoom = Math.min(caps.zoom.max, Math.max(caps.zoom.min, initialZoom.current * scale));
-          currentZoom.current = newZoom;
-          try { await track.applyConstraints({ advanced: [{ zoom: newZoom } as MediaTrackConstraintSet] }); } catch {}
-        }
-      }
-    }, { passive: true });
-  }
-
-  const toggleTorch = async () => {
-    try {
-      const track = streamRef.current?.getVideoTracks()[0];
-      if (!track) return;
-      const newVal = !torchOn;
-      await track.applyConstraints({ advanced: [{ torch: newVal } as MediaTrackConstraintSet] });
-      setTorchOn(newVal);
-    } catch {
-      toast.error("Torch supported nahi hai is device par");
-    }
+function analyzeNutrition(ingredients: Ingredient[]): NutritionResult {
+  const knownFoods: Record<string, { cal: number; protein: number; carbs: number; fat: number; fiber: number }> = {
+    "rice": { cal: 130, protein: 2.7, carbs: 28, fat: 0.3, fiber: 0.4 },
+    "chawal": { cal: 130, protein: 2.7, carbs: 28, fat: 0.3, fiber: 0.4 },
+    "dal": { cal: 116, protein: 9, carbs: 20, fat: 0.4, fiber: 8 },
+    "roti": { cal: 71, protein: 2.6, carbs: 15, fat: 0.4, fiber: 2.2 },
+    "sabzi": { cal: 50, protein: 2, carbs: 10, fat: 0.5, fiber: 3 },
+    "paneer": { cal: 265, protein: 18, carbs: 3, fat: 21, fiber: 0 },
+    "ghee": { cal: 900, protein: 0, carbs: 0, fat: 100, fiber: 0 },
+    "oil": { cal: 900, protein: 0, carbs: 0, fat: 100, fiber: 0 },
+    "tel": { cal: 900, protein: 0, carbs: 0, fat: 100, fiber: 0 },
+    "chicken": { cal: 165, protein: 31, carbs: 0, fat: 3.6, fiber: 0 },
+    "egg": { cal: 155, protein: 13, carbs: 1.1, fat: 11, fiber: 0 },
+    "anda": { cal: 155, protein: 13, carbs: 1.1, fat: 11, fiber: 0 },
+    "milk": { cal: 61, protein: 3.2, carbs: 4.8, fat: 3.3, fiber: 0 },
+    "doodh": { cal: 61, protein: 3.2, carbs: 4.8, fat: 3.3, fiber: 0 },
+    "aloo": { cal: 77, protein: 2, carbs: 17, fat: 0.1, fiber: 2.2 },
+    "potato": { cal: 77, protein: 2, carbs: 17, fat: 0.1, fiber: 2.2 },
+    "tomato": { cal: 18, protein: 0.9, carbs: 3.9, fat: 0.2, fiber: 1.2 },
+    "tamatar": { cal: 18, protein: 0.9, carbs: 3.9, fat: 0.2, fiber: 1.2 },
+    "onion": { cal: 40, protein: 1.1, carbs: 9.3, fat: 0.1, fiber: 1.7 },
+    "pyaz": { cal: 40, protein: 1.1, carbs: 9.3, fat: 0.1, fiber: 1.7 },
   };
 
-  const handleBarcodeSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
-    const v = manualInput.trim();
-    if (!v) return;
-    if (/^\d{8,13}$/.test(v)) {
-      stopCamera();
-      setLocation(`/product/${v}`);
+  let totalCal = 0, totalProtein = 0, totalCarbs = 0, totalFat = 0, totalFiber = 0;
+  let matched = 0;
+
+  ingredients.forEach(ing => {
+    const key = ing.name.toLowerCase().trim();
+    const grams = parseFloat(ing.amount) || 100;
+    const food = knownFoods[key];
+    if (food) {
+      matched++;
+      const factor = grams / 100;
+      totalCal += food.cal * factor;
+      totalProtein += food.protein * factor;
+      totalCarbs += food.carbs * factor;
+      totalFat += food.fat * factor;
+      totalFiber += food.fiber * factor;
     } else {
-      toast.error("Valid barcode enter karo (8-13 digits)");
+      totalCal += (grams * 1.5);
+      totalCarbs += (grams * 0.15);
     }
+  });
+
+  let grade = "A", gradeColor = "bg-green-500";
+  const fatRatio = totalCal > 0 ? (totalFat * 9) / totalCal : 0;
+  if (totalCal > 800 || fatRatio > 0.4) { grade = "C"; gradeColor = "bg-yellow-500"; }
+  if (totalCal > 1200 || fatRatio > 0.55) { grade = "D"; gradeColor = "bg-orange-500"; }
+  if (totalProtein > 20 && totalFiber > 5) { grade = grade === "C" ? "B" : grade; }
+
+  return {
+    calories: Math.round(totalCal),
+    protein: Math.round(totalProtein * 10) / 10,
+    carbs: Math.round(totalCarbs * 10) / 10,
+    fat: Math.round(totalFat * 10) / 10,
+    fiber: Math.round(totalFiber * 10) / 10,
+    grade,
+    gradeColor,
+    summary: matched === 0
+      ? "Ingredients pehchaan nahi paye — approximate values hain"
+      : `${matched}/${ingredients.length} ingredients analyze kiye gaye`,
+  };
+}
+
+export default function GharKaKhana() {
+  const [, setLocation] = useLocation();
+  const [ingredients, setIngredients] = useState<Ingredient[]>([
+    { id: "1", name: "", amount: "100" }
+  ]);
+  const [result, setResult] = useState<NutritionResult | null>(null);
+  const [mealName, setMealName] = useState("");
+
+  const addIngredient = () => {
+    setIngredients(prev => [...prev, { id: Date.now().toString(), name: "", amount: "100" }]);
+  };
+
+  const removeIngredient = (id: string) => {
+    if (ingredients.length === 1) return;
+    setIngredients(prev => prev.filter(i => i.id !== id));
+  };
+
+  const updateIngredient = (id: string, field: "name" | "amount", value: string) => {
+    setIngredients(prev => prev.map(i => i.id === id ? { ...i, [field]: value } : i));
+  };
+
+  const handleAnalyze = () => {
+    const filled = ingredients.filter(i => i.name.trim());
+    if (filled.length === 0) {
+      toast.error("Kam se kam ek ingredient toh daalo bhai!");
+      return;
+    }
+    const res = analyzeNutrition(filled);
+    setResult(res);
   };
 
   return (
-    <div className="flex flex-col h-full bg-black text-white relative overflow-hidden">
-      {/* Top bar */}
-      <div className="absolute top-0 left-0 right-0 z-20 p-3 flex justify-between items-center bg-gradient-to-b from-black/80 to-transparent">
-        <Button
-          variant="ghost" size="icon"
-          className="text-white hover:bg-white/20 rounded-full"
-          onClick={() => { stopCamera(); setLocation("/"); }}
-        >
-          <ArrowLeft />
+    <div className="flex flex-col min-h-full bg-background">
+      {/* Header */}
+      <div className="sticky top-0 z-10 bg-background/95 backdrop-blur border-b px-4 py-3 flex items-center gap-3">
+        <Button variant="ghost" size="icon" onClick={() => setLocation("/")}>
+          <ArrowLeft size={20} />
         </Button>
-
-        <div className="flex items-center gap-2">
-          <div className="flex bg-black/40 backdrop-blur-sm rounded-full p-1 text-xs gap-1">
-            <button
-              onClick={() => setMode("barcode")}
-              className={`px-3 py-1 rounded-full transition-all ${mode === "barcode" ? "bg-primary text-white" : "text-white/70"}`}
-            >
-              📷 Scan
-            </button>
-            <button
-              onClick={() => setMode("name")}
-              className={`px-3 py-1 rounded-full transition-all ${mode === "name" ? "bg-primary text-white" : "text-white/70"}`}
-            >
-              🔍 Search
-            </button>
-          </div>
-
-          {torchSupported && mode === "barcode" && (
-            <Button
-              variant="ghost" size="icon"
-              className={`text-white hover:bg-white/20 rounded-full ${torchOn ? "text-yellow-400" : ""}`}
-              onClick={toggleTorch}
-            >
-              <Flashlight size={20} />
-            </Button>
-          )}
+        <div>
+          <h1 className="text-base font-bold flex items-center gap-2">
+            <Utensils size={18} className="text-primary" /> Ghar Ka Khana 🍲
+          </h1>
+          <p className="text-xs text-muted-foreground">Apne khane ki nutrition check karo</p>
         </div>
       </div>
 
-      {mode === "barcode" ? (
-        <>
-          <div className="flex-1 relative overflow-hidden flex items-center justify-center bg-zinc-950">
-            <video
-              ref={videoRef}
-              className="absolute inset-0 w-full h-full object-cover"
-              playsInline muted autoPlay
-            />
-
-            <div className="absolute inset-0 z-10 pointer-events-none">
-              <div className="absolute inset-0 bg-black/45" />
-              <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-72 h-52 bg-transparent"
-                style={{ boxShadow: "0 0 0 2000px rgba(0,0,0,0.45)" }} />
-            </div>
-
-            <div className={`relative z-20 w-72 h-52 transition-all duration-300 ${scanState === "found" ? "scale-105" : ""}`}>
-              <div className={`absolute top-0 left-0 w-6 h-6 border-t-3 border-l-3 rounded-tl-md transition-colors ${scanState === "found" ? "border-green-400" : "border-primary"}`}
-                style={{ borderTopWidth: 3, borderLeftWidth: 3 }} />
-              <div className={`absolute top-0 right-0 w-6 h-6 border-t-3 border-r-3 rounded-tr-md transition-colors ${scanState === "found" ? "border-green-400" : "border-primary"}`}
-                style={{ borderTopWidth: 3, borderRightWidth: 3 }} />
-              <div className={`absolute bottom-0 left-0 w-6 h-6 border-b-3 border-l-3 rounded-bl-md transition-colors ${scanState === "found" ? "border-green-400" : "border-primary"}`}
-                style={{ borderBottomWidth: 3, borderLeftWidth: 3 }} />
-              <div className={`absolute bottom-0 right-0 w-6 h-6 border-b-3 border-r-3 rounded-br-md transition-colors ${scanState === "found" ? "border-green-400" : "border-primary"}`}
-                style={{ borderBottomWidth: 3, borderRightWidth: 3 }} />
-
-              {scanState === "scanning" && (
-                <div className="absolute inset-0 overflow-hidden">
-                  <div className="w-full h-0.5 bg-primary/90 shadow-[0_0_8px_2px_rgba(34,197,94,0.5)] animate-scan" />
-                </div>
-              )}
-
-              {scanState === "found" && (
-                <div className="absolute inset-0 flex items-center justify-center">
-                  <div className="bg-green-500/90 rounded-full p-3 animate-bounce">
-                    <ScanLine size={28} className="text-white" />
-                  </div>
-                </div>
-              )}
-            </div>
-
-            <p className="absolute bottom-4 left-0 right-0 text-center z-20 text-white/50 text-xs">
-              📍 Pinch to zoom • Auto-scans continuously
-            </p>
-          </div>
-
-          <div className="bg-zinc-950 px-5 pt-5 pb-6 rounded-t-3xl z-10 -mt-5 relative space-y-4">
-            <div className="w-12 h-1 bg-zinc-700 rounded-full mx-auto" />
-
-            <div className="text-center space-y-1">
-              <p className="text-white font-semibold text-sm">
-                {scanState === "found" ? "✅ Barcode Mila! Redirect ho raha hai..." :
-                 scanState === "error" ? "⚠️ Camera nahi mili — manual try karo" :
-                 "📦 Product ka barcode frame mein rakh do"}
-              </p>
-              <p className="text-zinc-500 text-xs">EAN-13 • UPC • QR supported</p>
-            </div>
-
-            <div>
-              <button
-                onClick={() => setShowManual((v) => !v)}
-                className="flex items-center gap-2 text-zinc-400 text-xs mb-3"
-              >
-                <Keyboard size={13} />
-                Barcode manually type karo
-              </button>
-
-              {showManual && (
-                <form onSubmit={handleBarcodeSubmit} className="flex gap-2">
-                  <Input
-                    type="number"
-                    placeholder="8901234567890 (EAN-13)"
-                    value={manualInput}
-                    onChange={(e) => setManualInput(e.target.value)}
-                    className="bg-zinc-900 border-zinc-700 text-white placeholder:text-zinc-600 h-12 [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
-                  />
-                  <Button type="submit" className="h-12 px-4 bg-primary">
-                    <ScanLine size={18} />
-                  </Button>
-                </form>
-              )}
-            </div>
-          </div>
-        </>
-      ) : (
-        <div className="flex-1 bg-zinc-950 pt-20 px-4 overflow-auto">
-          <div className="space-y-4">
-            <div>
-              <h2 className="text-white text-lg font-bold mb-1">Product Search 🔍</h2>
-              <p className="text-zinc-400 text-xs mb-3">Product ka naam ya brand type karo</p>
-
-              <div className="relative">
-                <Search size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-zinc-400" />
-                <Input
-                  autoFocus
-                  value={searchQuery}
-                  onChange={(e) => setSearchQuery(e.target.value)}
-                  placeholder="e.g. Maggi, Amul, Dahi..."
-                  className="bg-zinc-900 border-zinc-700 text-white placeholder:text-zinc-500 h-12 pl-9 pr-10"
-                />
-                {searchQuery && (
-                  <button
-                    onClick={() => setSearchQuery("")}
-                    className="absolute right-3 top-1/2 -translate-y-1/2 text-zinc-400"
-                  >
-                    <X size={16} />
-                  </button>
-                )}
-              </div>
-            </div>
-
-            {searching && (
-              <div className="space-y-2">
-                {[1, 2, 3].map((i) => (
-                  <div key={i} className="h-16 bg-zinc-900 rounded-xl animate-pulse" />
-                ))}
-              </div>
-            )}
-
-            {!searching && searchResults && searchResults.length === 0 && debouncedSearch.length >= 2 && (
-              <div className="text-center py-8 text-zinc-500">
-                <p className="text-2xl mb-2">😕</p>
-                <p className="text-sm">"{debouncedSearch}" nahi mila</p>
-                <p className="text-xs mt-1">Barcode scan karo ya dusra naam try karo</p>
-              </div>
-            )}
-
-            {searchResults && searchResults.length > 0 && (
-              <div className="space-y-2">
-                <p className="text-zinc-400 text-xs">{searchResults.length} results mile</p>
-                {searchResults.map((product) => (
-                  <Link key={product.barcode} href={`/product/${product.barcode}`} onClick={stopCamera}>
-                    <Card className="bg-zinc-900 border-zinc-700 hover:border-primary/50 cursor-pointer active:scale-[0.98] transition-all mb-2">
-                      <CardContent className="p-3 flex items-center gap-3">
-                        <NutriScore score={product.nutriScore} points={product.nutriScorePoints} size="md" showPoints />
-                        <div className="flex-1 min-w-0">
-                          <p className="text-white font-medium text-sm truncate">{product.name}</p>
-                          <p className="text-zinc-400 text-xs truncate">{product.brand || product.category || "—"}</p>
-                        </div>
-                        {product.isVeg !== undefined && product.isVeg !== null && (
-                          <div className={`w-5 h-5 rounded border-2 flex-shrink-0 flex items-center justify-center ${product.isVeg ? "border-green-500" : "border-red-500"}`}>
-                            <div className={`w-2 h-2 rounded-full ${product.isVeg ? "bg-green-500" : "bg-red-500"}`} />
-                          </div>
-                        )}
-                      </CardContent>
-                    </Card>
-                  </Link>
-                ))}
-              </div>
-            )}
-
-            {debouncedSearch.length < 2 && (
-              <div className="text-center py-12 text-zinc-600">
-                <Search size={40} className="mx-auto mb-3 opacity-30" />
-                <p className="text-sm">Naam type karna shuru karo...</p>
-                <p className="text-xs mt-1">Minimum 2 characters chahiye</p>
-              </div>
-            )}
-          </div>
+      <div className="flex-1 p-4 space-y-4 pb-8">
+        {/* Meal Name */}
+        <div>
+          <label className="text-sm font-medium mb-1.5 block">Khane ka naam (optional)</label>
+          <Input
+            placeholder="e.g. Dal Chawal, Aloo Paratha..."
+            value={mealName}
+            onChange={e => setMealName(e.target.value)}
+          />
         </div>
-      )}
 
-      <style dangerouslySetInnerHTML={{ __html: `
-        @keyframes scan {
-          0% { transform: translateY(-100px); }
-          50% { transform: translateY(100px); }
-          100% { transform: translateY(-100px); }
-        }
-        .animate-scan { animation: scan 2.5s ease-in-out infinite; }
-      `}} />
+        {/* Ingredients */}
+        <div>
+          <label className="text-sm font-medium mb-2 block">Ingredients 🥘</label>
+          <div className="space-y-2">
+            {ingredients.map((ing, idx) => (
+              <div key={ing.id} className="flex gap-2 items-center">
+                <Input
+                  placeholder={`Ingredient ${idx + 1} (e.g. Dal, Chawal)`}
+                  value={ing.name}
+                  onChange={e => updateIngredient(ing.id, "name", e.target.value)}
+                  className="flex-1"
+                />
+                <Input
+                  type="number"
+                  placeholder="grams"
+                  value={ing.amount}
+                  onChange={e => updateIngredient(ing.id, "amount", e.target.value)}
+                  className="w-20 text-center"
+                />
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  onClick={() => removeIngredient(ing.id)}
+                  className="text-muted-foreground hover:text-destructive flex-shrink-0"
+                >
+                  <Trash2 size={16} />
+                </Button>
+              </div>
+            ))}
+          </div>
+
+          <Button variant="outline" size="sm" className="mt-2 w-full" onClick={addIngredient}>
+            <Plus size={15} className="mr-1" /> Aur ingredient add karo
+          </Button>
+        </div>
+
+        {/* Analyze Button */}
+        <Button className="w-full h-12 text-base font-bold" onClick={handleAnalyze}>
+          🔍 Nutrition Analyze Karo
+        </Button>
+
+        {/* Result */}
+        {result && (
+          <Card className="border-primary/20 bg-primary/5">
+            <CardContent className="p-4 space-y-3">
+              <div className="flex items-center justify-between">
+                <h2 className="font-bold text-base">{mealName || "Aapka Khana"} 🍽️</h2>
+                <div className={`${result.gradeColor} text-white font-black text-lg w-10 h-10 rounded-lg flex items-center justify-center`}>
+                  {result.grade}
+                </div>
+              </div>
+
+              <div className="grid grid-cols-2 gap-2">
+                {[
+                  { label: "Calories", value: `${result.calories} kcal`, color: "text-orange-500" },
+                  { label: "Protein", value: `${result.protein}g`, color: "text-blue-500" },
+                  { label: "Carbs", value: `${result.carbs}g`, color: "text-yellow-500" },
+                  { label: "Fat", value: `${result.fat}g`, color: "text-red-500" },
+                  { label: "Fiber", value: `${result.fiber}g`, color: "text-green-500" },
+                ].map(item => (
+                  <div key={item.label} className="bg-background rounded-lg p-2.5 text-center">
+                    <p className={`text-base font-bold ${item.color}`}>{item.value}</p>
+                    <p className="text-xs text-muted-foreground">{item.label}</p>
+                  </div>
+                ))}
+              </div>
+
+              <p className="text-xs text-muted-foreground text-center">{result.summary}</p>
+            </CardContent>
+          </Card>
+        )}
+      </div>
     </div>
   );
 }
