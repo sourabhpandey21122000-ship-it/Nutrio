@@ -24,7 +24,10 @@ export default function Home() {
   return (
     <div className="flex flex-col min-h-full p-4 gap-5 animate-in fade-in zoom-in-95 duration-300">
       <header className="pt-4">
-        <h1 className="text-2xl font-bold text-foreground">Nutrio 🌿</h1>
+        <div className="flex items-center gap-2">
+          <img src="/file_00000000de2c72089e41e60d92948151.png" alt="Nutrio" className="h-9 w-9 object-contain" />
+          <h1 className="text-2xl font-bold text-foreground">Nutrio</h1>
+        </div>
         <p className="text-muted-foreground text-sm mt-0.5">{getGreeting()}</p>
       </header>
 
