@@ -1,12 +1,10 @@
 import { useHistory } from "@/hooks/useHistory";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
 import { Switch } from "@/components/ui/switch";
 import { Label } from "@/components/ui/label";
 import { Separator } from "@/components/ui/separator";
 import { useTheme } from "@/components/theme-provider";
-import { toast } from "sonner";
-import { User, LogIn, Moon, Sun, BarChart2, Leaf, Award } from "lucide-react";
+import { User, Moon, Sun, BarChart2, Leaf } from "lucide-react";
 import { NutriScore } from "@/components/ui/nutri-score";
 
 export default function Profile() {
@@ -42,24 +40,6 @@ export default function Profile() {
             <p className="font-bold text-lg">Guest User</p>
             <p className="text-sm text-muted-foreground">Login karke history sync karo</p>
           </div>
-        </CardContent>
-      </Card>
-
-      {/* Firebase Login (placeholder) */}
-      <Card>
-        <CardContent className="p-4">
-          <Button
-            data-testid="button-google-login"
-            variant="outline"
-            className="w-full h-12 gap-3 border-muted"
-            onClick={() => toast.info("Coming soon! Firebase config add karo pehle.")}
-          >
-            <LogIn size={18} className="text-primary" />
-            <span className="font-medium">Google se login karo</span>
-          </Button>
-          <p className="text-xs text-muted-foreground text-center mt-2">
-            Login karoge toh data safe rahega
-          </p>
         </CardContent>
       </Card>
 
