@@ -14,6 +14,12 @@
       function gtag(){dataLayer.push(arguments);}
       gtag('js', new Date());
       gtag('config', 'G-J54SBS2N1R');
+      window.addEventListener('appinstalled', () => {
+        gtag('event', 'pwa_installed', {
+          event_category: 'PWA',
+          event_label: 'Home Screen Install'
+        });
+      });
     </script>
     <link rel="icon" type="image/png" href="/file_00000000de2c72089e41e60d92948151.png" />
     <link rel="preconnect" href="https://fonts.googleapis.com">
