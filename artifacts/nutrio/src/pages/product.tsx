@@ -49,6 +49,7 @@ interface Product {
   tips?: string[];
   ayurvedicNote?: string;
   alternatives?: Alternative[];
+  hasCompleteNutrition?: boolean;
 }
 
 // ─── Fun Facts ───────────────────────────────────────────────────────────────
@@ -212,9 +213,370 @@ const CATEGORY_ALTERNATIVES: Record<string, { home: string[]; homeReasons: strin
   },
 };
 
+// ─── Hinglish Ingredients Dictionary ─────────────────────────────────────────
+
+const INGREDIENTS_DICT: Record<string, string> = {
+  // Basic
+  "sugar": "Cheeni (Sugar)",
+  "salt": "Namak (Salt)",
+  "water": "Paani (Water)",
+  "milk": "Doodh (Milk)",
+  "butter": "Makhan (Butter)",
+  "ghee": "Ghee",
+  "oil": "Tel (Oil)",
+  "honey": "Shahad (Honey)",
+  "vinegar": "Sirka (Vinegar)",
+  "starch": "Starch (Maand)",
+  "glucose": "Glucose (Shakkar)",
+  "fructose": "Fructose (Phal ki Shakkar)",
+  "lactose": "Lactose (Doodh ki Shakkar)",
+  "maltose": "Maltose (Malt Shakkar)",
+  "sucrose": "Sucrose (Cheeni)",
+  "dextrose": "Dextrose (Angoor Shakkar)",
+  "jaggery": "Gur (Jaggery)",
+
+  // Flours & Grains
+  "wheat flour": "Gehun ka Atta (Wheat Flour)",
+  "refined wheat flour": "Maida (Refined Flour)",
+  "maida": "Maida (Refined Flour)",
+  "whole wheat flour": "Gehun ka Atta (Whole Wheat)",
+  "rice flour": "Chawal ka Atta (Rice Flour)",
+  "corn flour": "Makki ka Atta (Corn Flour)",
+  "cornstarch": "Makki ka Starch (Cornstarch)",
+  "oat flour": "Jaai ka Atta (Oat Flour)",
+  "ragi flour": "Ragi ka Atta",
+  "besan": "Besan (Chickpea Flour)",
+  "chickpea flour": "Besan (Chickpea Flour)",
+  "semolina": "Suji (Semolina)",
+  "rava": "Suji/Rava",
+  "tapioca starch": "Sabudana Starch (Tapioca)",
+  "arrowroot": "Arrowroot Starch",
+  "barley": "Jau (Barley)",
+  "oats": "Jaai (Oats)",
+  "rice": "Chawal (Rice)",
+  "wheat": "Gehun (Wheat)",
+  "corn": "Makki (Corn)",
+  "maize": "Makka (Maize)",
+  "soya": "Soya",
+  "soy": "Soya",
+  "quinoa": "Quinoa",
+  "millet": "Bajra (Millet)",
+
+  // Oils & Fats
+  "palm oil": "Palm Tel (Palm Oil) ⚠️",
+  "palm olein": "Palm Olein Tel ⚠️",
+  "sunflower oil": "Surajmukhi Tel (Sunflower Oil)",
+  "soybean oil": "Soya Tel (Soybean Oil)",
+  "canola oil": "Canola Tel",
+  "coconut oil": "Nariyal Tel (Coconut Oil)",
+  "mustard oil": "Sarson ka Tel (Mustard Oil)",
+  "groundnut oil": "Moongfali Tel (Groundnut Oil)",
+  "peanut oil": "Moongfali Tel (Peanut Oil)",
+  "sesame oil": "Til ka Tel (Sesame Oil)",
+  "vegetable oil": "Vanasapati Tel (Vegetable Oil)",
+  "hydrogenated vegetable fat": "Vanaspati (Hydrogenated Fat) ⚠️",
+  "vanaspati": "Vanaspati ⚠️",
+  "margarine": "Margarine ⚠️",
+  "shortening": "Shortening (Fat) ⚠️",
+  "lard": "Suar ki Charbi (Lard) 🚫",
+  "cream": "Cream (Malai)",
+  "milk fat": "Doodh ki Chiknaai (Milk Fat)",
+  "milk solids": "Doodh ke Ttte (Milk Solids)",
+  "skimmed milk powder": "Tone Doodh ka Powder (Skimmed Milk)",
+  "whey powder": "Whey Powder (Doodh ka Arq)",
+  "whey": "Whey (Doodh ka Arq)",
+  "casein": "Casein (Doodh Protein)",
+
+  // Dairy
+  "whole milk": "Poora Doodh (Whole Milk)",
+  "skim milk": "Tone Doodh (Skim Milk)",
+  "condensed milk": "Condensed Doodh (Meetha Doodh)",
+  "evaporated milk": "Evaporated Milk",
+  "yogurt": "Dahi (Yogurt)",
+  "curd": "Dahi (Curd)",
+  "paneer": "Paneer",
+  "cheese": "Cheese (Paneer jaisa)",
+  "cheddar": "Cheddar Cheese",
+  "mozzarella": "Mozzarella Cheese",
+
+  // Spices & Masale
+  "turmeric": "Haldi (Turmeric)",
+  "cumin": "Jeera (Cumin)",
+  "coriander": "Dhania (Coriander)",
+  "black pepper": "Kali Mirch (Black Pepper)",
+  "red chilli": "Lal Mirch (Red Chilli)",
+  "chilli": "Mirch (Chilli)",
+  "chili": "Mirch (Chili)",
+  "ginger": "Adrak (Ginger)",
+  "garlic": "Lehsun (Garlic)",
+  "cardamom": "Elaichi (Cardamom)",
+  "cinnamon": "Dalchini (Cinnamon)",
+  "cloves": "Laung (Cloves)",
+  "bay leaf": "Tej Patta (Bay Leaf)",
+  "mustard seeds": "Rai/Sarson (Mustard Seeds)",
+  "fenugreek": "Methi (Fenugreek)",
+  "asafoetida": "Hing (Asafoetida)",
+  "ajwain": "Ajwain (Carom Seeds)",
+  "fennel": "Saunf (Fennel)",
+  "star anise": "Chakri Phool (Star Anise)",
+  "nutmeg": "Jaiphal (Nutmeg)",
+  "mace": "Javitri (Mace)",
+  "saffron": "Kesar (Saffron)",
+  "pepper": "Kali Mirch (Pepper)",
+  "paprika": "Lal Mirch Powder (Paprika)",
+  "oregano": "Oregano (Ajwain jaisa)",
+  "thyme": "Thyme (Herb)",
+  "rosemary": "Rosemary (Herb)",
+  "basil": "Tulsi/Basil",
+  "mint": "Pudina (Mint)",
+  "curry leaves": "Kadi Patta (Curry Leaves)",
+  "tamarind": "Imli (Tamarind)",
+  "amchur": "Amchur (Khatai)",
+  "dry mango powder": "Amchur (Sukha Aam Powder)",
+
+  // Pulses & Nuts
+  "peanuts": "Moongfali (Peanuts)",
+  "groundnuts": "Moongfali (Groundnuts)",
+  "almonds": "Badam (Almonds)",
+  "cashews": "Kaju (Cashews)",
+  "cashew nuts": "Kaju (Cashews)",
+  "walnuts": "Akhrot (Walnuts)",
+  "pistachios": "Pista (Pistachios)",
+  "raisins": "Kishmish (Raisins)",
+  "dates": "Khajoor (Dates)",
+  "coconut": "Nariyal (Coconut)",
+  "desiccated coconut": "Sukha Nariyal (Desiccated Coconut)",
+  "sesame seeds": "Til (Sesame Seeds)",
+  "sunflower seeds": "Surajmukhi ke Beej",
+  "flaxseeds": "Alsi ke Beej (Flaxseeds)",
+  "chia seeds": "Chia Beej",
+  "lentils": "Dal (Lentils)",
+  "chickpeas": "Chane (Chickpeas)",
+  "green peas": "Matar (Green Peas)",
+  "soybeans": "Soya Bean",
+
+  // Sweeteners
+  "high fructose corn syrup": "Corn Syrup (Artificial Meethas) ⚠️",
+  "corn syrup": "Corn Syrup ⚠️",
+  "invert sugar": "Invert Sugar (Artificial Meethas)",
+  "molasses": "Sheera (Molasses)",
+  "stevia": "Stevia (Natural Meethas)",
+  "aspartame": "Aspartame (Artificial Meethas) ⚠️",
+  "saccharin": "Saccharin (Artificial Meethas) ⚠️",
+  "sucralose": "Sucralose (Artificial Meethas)",
+  "acesulfame": "Acesulfame (Artificial Meethas)",
+  "sorbitol": "Sorbitol (Sugar Alcohol)",
+  "maltitol": "Maltitol (Sugar Alcohol)",
+  "xylitol": "Xylitol (Sugar Alcohol)",
+
+  // Preservatives
+  "sodium benzoate": "Sodium Benzoate (Preservative ⚠️)",
+  "potassium sorbate": "Potassium Sorbate (Preservative)",
+  "sodium nitrate": "Sodium Nitrate (Preservative ⚠️)",
+  "sodium nitrite": "Sodium Nitrite (Preservative ⚠️)",
+  "sulphur dioxide": "Sulphur Dioxide (Preservative)",
+  "sulfur dioxide": "Sulphur Dioxide (Preservative)",
+  "calcium propionate": "Calcium Propionate (Preservative)",
+  "sodium propionate": "Sodium Propionate (Preservative)",
+  "citric acid": "Nimbu Acid (Citric Acid)",
+  "acetic acid": "Sirka Acid (Acetic Acid)",
+  "lactic acid": "Lactic Acid",
+  "ascorbic acid": "Vitamin C (Ascorbic Acid)",
+  "sorbic acid": "Sorbic Acid (Preservative)",
+  "ins 211": "INS 211 - Sodium Benzoate (Preservative ⚠️)",
+  "ins 202": "INS 202 - Potassium Sorbate (Preservative)",
+  "ins 200": "INS 200 - Sorbic Acid (Preservative)",
+  "ins 220": "INS 220 - Sulphur Dioxide (Preservative)",
+  "ins 250": "INS 250 - Sodium Nitrite (Preservative ⚠️)",
+  "ins 281": "INS 281 - Sodium Propionate (Preservative)",
+
+  // Emulsifiers & Stabilizers
+  "lecithin": "Lecithin (Emulsifier)",
+  "soy lecithin": "Soya Lecithin (Emulsifier)",
+  "sunflower lecithin": "Sunflower Lecithin (Emulsifier)",
+  "mono and diglycerides": "Mono-Diglycerides (Emulsifier)",
+  "monoglycerides": "Monoglycerides (Emulsifier)",
+  "diglycerides": "Diglycerides (Emulsifier)",
+  "polysorbate 80": "Polysorbate 80 (Emulsifier)",
+  "polysorbate 60": "Polysorbate 60 (Emulsifier)",
+  "carrageenan": "Carrageenan (Thickener)",
+  "xanthan gum": "Xanthan Gum (Thickener)",
+  "guar gum": "Guar Gum (Thickener)",
+  "locust bean gum": "Locust Bean Gum (Thickener)",
+  "gelatin": "Gelatin (Non-Veg Thickener) 🚫",
+  "gelatine": "Gelatin (Non-Veg) 🚫",
+  "pectin": "Pectin (Natural Thickener)",
+  "agar": "Agar Agar (Thickener)",
+  "modified starch": "Modified Starch (Thickener)",
+  "modified corn starch": "Makki ka Modified Starch",
+  "tapioca": "Sabudana (Tapioca)",
+  "cellulose": "Cellulose (Fiber)",
+  "ins 471": "INS 471 - Mono-Diglycerides (Emulsifier)",
+  "ins 472": "INS 472 - Emulsifier",
+  "ins 415": "INS 415 - Xanthan Gum (Thickener)",
+  "ins 412": "INS 412 - Guar Gum (Thickener)",
+  "ins 407": "INS 407 - Carrageenan (Thickener)",
+  "ins 440": "INS 440 - Pectin (Thickener)",
+
+  // Colors
+  "caramel color": "Caramel Rang (Color)",
+  "caramel colour": "Caramel Rang (Color)",
+  "tartrazine": "Tartrazine (Peela Rang ⚠️)",
+  "sunset yellow": "Sunset Yellow (Narangi Rang ⚠️)",
+  "carmoisine": "Carmoisine (Lal Rang ⚠️)",
+  "brilliant blue": "Brilliant Blue (Neela Rang)",
+  "allura red": "Allura Red (Lal Rang ⚠️)",
+  "titanium dioxide": "Titanium Dioxide (Safed Rang ⚠️)",
+  "beta carotene": "Beta Carotene (Natural Orange Rang)",
+  "curcumin": "Curcumin (Haldi Rang - Natural)",
+  "ins 102": "INS 102 - Tartrazine (Yellow Color ⚠️)",
+  "ins 110": "INS 110 - Sunset Yellow (Color ⚠️)",
+  "ins 122": "INS 122 - Carmoisine (Red Color ⚠️)",
+  "ins 124": "INS 124 - Ponceau Red (Color ⚠️)",
+  "ins 150": "INS 150 - Caramel Color",
+  "ins 171": "INS 171 - Titanium Dioxide (White Color ⚠️)",
+
+  // Flavor Enhancers
+  "monosodium glutamate": "MSG (Taste Badhaane wala ⚠️)",
+  "msg": "MSG (Taste Badhaane wala ⚠️)",
+  "disodium inosinate": "Disodium Inosinate (Flavor Enhancer)",
+  "disodium guanylate": "Disodium Guanylate (Flavor Enhancer)",
+  "yeast extract": "Yeast Extract (Flavor)",
+  "natural flavour": "Natural Flavour (Prakritik Swad)",
+  "natural flavor": "Natural Flavour (Prakritik Swad)",
+  "artificial flavour": "Artificial Flavour (Naqli Swad ⚠️)",
+  "artificial flavor": "Artificial Flavour (Naqli Swad ⚠️)",
+  "mixed spices": "Mixed Masala (Mixed Spices)",
+  "ins 621": "INS 621 - MSG (Taste Enhancer ⚠️)",
+  "ins 627": "INS 627 - Disodium Guanylate (Flavor)",
+  "ins 631": "INS 631 - Disodium Inosinate (Flavor)",
+
+  // Anticaking & Raising Agents
+  "sodium bicarbonate": "Meetha Soda (Baking Soda)",
+  "baking soda": "Meetha Soda (Baking Soda)",
+  "baking powder": "Baking Powder",
+  "yeast": "Yeast (Khamir)",
+  "ammonium bicarbonate": "Ammonium Bicarbonate (Raising Agent)",
+  "calcium carbonate": "Calcium Carbonate (Khaas Namak)",
+  "sodium chloride": "Namak (Sodium Chloride)",
+  "potassium chloride": "Potassium Chloride (Salt substitute)",
+  "ins 500": "INS 500 - Sodium Bicarbonate (Soda)",
+  "ins 503": "INS 503 - Ammonium Bicarbonate",
+  "ins 341": "INS 341 - Calcium Phosphate",
+
+  // Antioxidants
+  "tocopherol": "Tocopherol (Vitamin E - Antioxidant)",
+  "vitamin e": "Vitamin E (Antioxidant)",
+  "vitamin c": "Vitamin C (Antioxidant)",
+  "tbhq": "TBHQ (Antioxidant ⚠️)",
+  "bha": "BHA (Antioxidant ⚠️)",
+  "bht": "BHT (Antioxidant ⚠️)",
+  "ins 319": "INS 319 - TBHQ (Antioxidant ⚠️)",
+  "ins 320": "INS 320 - BHA (Antioxidant ⚠️)",
+  "ins 321": "INS 321 - BHT (Antioxidant ⚠️)",
+  "ins 306": "INS 306 - Tocopherol (Vitamin E)",
+  "ins 300": "INS 300 - Ascorbic Acid (Vitamin C)",
+
+  // Proteins
+  "soy protein": "Soya Protein",
+  "whey protein": "Whey Protein (Doodh Protein)",
+  "pea protein": "Matar Protein",
+  "gluten": "Gluten (Gehun Protein)",
+  "wheat gluten": "Gehun Gluten",
+  "vital wheat gluten": "Wheat Gluten (Protein)",
+  "egg": "Anda (Egg)",
+  "egg white": "Ande ki Safedi (Egg White)",
+  "egg yolk": "Ande ki Zardi (Egg Yolk)",
+  "albumin": "Albumin (Anda Protein)",
+
+  // Fruits & Vegetables
+  "tomato": "Tamatar (Tomato)",
+  "onion": "Pyaz (Onion)",
+  "potato": "Aloo (Potato)",
+  "carrot": "Gajar (Carrot)",
+  "spinach": "Palak (Spinach)",
+  "apple": "Seb (Apple)",
+  "mango": "Aam (Mango)",
+  "lemon": "Nimbu (Lemon)",
+  "lime": "Nimbu (Lime)",
+  "orange": "Santra (Orange)",
+  "pineapple": "Ananas (Pineapple)",
+  "strawberry": "Strawberry",
+  "banana": "Kela (Banana)",
+  "grape": "Angoor (Grape)",
+  "pomegranate": "Anar (Pomegranate)",
+  "amla": "Amla (Indian Gooseberry)",
+
+  // Meat & Non-Veg
+  "chicken": "Murga (Chicken) 🍗",
+  "beef": "Beef (Gaay ka Gosht) 🚫",
+  "pork": "Suar ka Gosht (Pork) 🚫",
+  "fish": "Machli (Fish) 🐟",
+  "shrimp": "Jheenga (Shrimp) 🦐",
+  "prawn": "Jheenga (Prawn) 🦐",
+  "anchovy": "Anchovy (Choti Machli) 🐟",
+  "tuna": "Tuna Machli 🐟",
+  "salmon": "Salmon Machli 🐟",
+  "mutton": "Mutton (Bakre ka Gosht)",
+  "lamb": "Lamb (Bakra)",
+
+  // Cocoa & Coffee
+  "cocoa": "Cocoa (Chocolate ka base)",
+  "cocoa butter": "Cocoa Butter (Chocolate Fat)",
+  "cocoa powder": "Cocoa Powder",
+  "chocolate": "Chocolate",
+  "coffee": "Coffee",
+  "tea extract": "Chai ka Arq (Tea Extract)",
+  "green tea extract": "Green Tea Arq",
+
+  // Additives - Acidity Regulators
+  "sodium citrate": "Sodium Citrate (Acidity Regulator)",
+  "potassium citrate": "Potassium Citrate (Acidity Regulator)",
+  "calcium citrate": "Calcium Citrate",
+  "malic acid": "Malic Acid (Khatai)",
+  "tartaric acid": "Tartaric Acid (Khatai)",
+  "phosphoric acid": "Phosphoric Acid ⚠️",
+  "ins 330": "INS 330 - Citric Acid (Nimbu Acid)",
+  "ins 331": "INS 331 - Sodium Citrate",
+  "ins 338": "INS 338 - Phosphoric Acid ⚠️",
+
+  // Humectants
+  "glycerol": "Glycerol (Moisture Keeper)",
+  "glycerin": "Glycerin (Moisture Keeper)",
+  "propylene glycol": "Propylene Glycol ⚠️",
+  "sorbitol syrup": "Sorbitol Syrup",
+
+  // Vitamins & Minerals (fortification)
+  "iron": "Iron (Loha - Mineral)",
+  "zinc": "Zinc (Mineral)",
+  "calcium": "Calcium (Haddi Mineral)",
+  "vitamin a": "Vitamin A",
+  "vitamin b": "Vitamin B",
+  "vitamin d": "Vitamin D",
+  "vitamin b12": "Vitamin B12",
+  "folic acid": "Folic Acid (Vitamin B9)",
+  "niacin": "Niacin (Vitamin B3)",
+  "riboflavin": "Riboflavin (Vitamin B2)",
+  "thiamine": "Thiamine (Vitamin B1)",
+  "iodine": "Iodine (Thyroid Mineral)",
+};
+
+// ─── Translate Ingredients to Hinglish ───────────────────────────────────────
+
+function translateIngredients(ingredients: string): string {
+  if (!ingredients) return "";
+  let result = ingredients;
+  const sortedKeys = Object.keys(INGREDIENTS_DICT).sort((a, b) => b.length - a.length);
+  for (const key of sortedKeys) {
+    const regex = new RegExp(`\\b${key}\\b`, "gi");
+    result = result.replace(regex, INGREDIENTS_DICT[key]);
+  }
+  return result;
+}
+
 // ─── FSSAI Grading ───────────────────────────────────────────────────────────
 
-function calculateFSSAIGrade(nutrition: NutriInfo): { grade: string; points: number } {
+function calculateFSSAIGrade(nutrition: NutriInfo): { grade: string; points: number; displayScore: number } {
   let points = 0;
 
   const sodium = nutrition.sodium ?? (nutrition.salt ? nutrition.salt * 400 : 0);
@@ -260,7 +622,35 @@ function calculateFSSAIGrade(nutrition: NutriInfo): { grade: string; points: num
   else if (points >= 3) grade = "B";
   else grade = "A";
 
-  return { grade, points };
+  // ── Normalize to 0–100 scale per grade ──
+  let displayScore = 0;
+  if (grade === "A") {
+    // points 0–2 → 100–80
+    displayScore = Math.round(100 - (points / 2) * 20);
+  } else if (grade === "B") {
+    // points 3–5 → 79–60
+    displayScore = Math.round(79 - ((points - 3) / 2) * 19);
+  } else if (grade === "C") {
+    // points 6–9 → 59–40
+    displayScore = Math.round(59 - ((points - 6) / 3) * 19);
+  } else if (grade === "D") {
+    // points 10–13 → 39–20
+    displayScore = Math.round(39 - ((points - 10) / 3) * 19);
+  } else {
+    // points 14+ → 19–0
+    displayScore = Math.max(0, Math.round(19 - (points - 14) * 3));
+  }
+
+  return { grade, points, displayScore };
+}
+
+// ─── Check if nutrition data is complete enough ───────────────────────────────
+
+function isNutritionComplete(nutrition: NutriInfo): boolean {
+  const hasCalories = nutrition.calories != null && nutrition.calories > 0;
+  const hasSugar = nutrition.sugars != null;
+  const hasFat = nutrition.fat != null;
+  return hasCalories || (hasSugar && hasFat);
 }
 
 // ─── Health Warnings ─────────────────────────────────────────────────────────
@@ -330,10 +720,12 @@ function detectVegStatus(labels: string[], ingredients: string): { isVeg: boolea
 
 async function fetchFromOFF(barcode: string): Promise<Product | null> {
   try {
-    const res = await fetch(`https://world.openfoodfacts.org/api/v0/product/${barcode}.json`);
+    // FIX: .net endpoint — CORS friendly for browser
+    const res = await fetch(`https://world.openfoodfacts.net/api/v2/product/${barcode}?fields=product_name,product_name_en,brands,categories,nutriments,ingredients_text_en,ingredients_text,labels_tags,nova_group,image_front_url`);
     const data = await res.json();
 
-    if (data.status !== 1 || !data.product) return null;
+    if (data.status !== 1 && data.status !== "success") return null;
+    if (!data.product) return null;
 
     const p = data.product;
     const nutriments = p.nutriments || {};
@@ -353,19 +745,25 @@ async function fetchFromOFF(barcode: string): Promise<Product | null> {
     const ingredients = p.ingredients_text_en ?? p.ingredients_text ?? "";
     const { isVeg, isVegan } = detectVegStatus(labels, ingredients);
 
-    const { grade, points } = calculateFSSAIGrade(nutrition);
-    const swadeshi = getSwadeshiScore(p.brands);
+    const nutritionComplete = isNutritionComplete(nutrition);
+    const { grade, points, displayScore } = nutritionComplete
+      ? calculateFSSAIGrade(nutrition)
+      : { grade: "?", points: 0, displayScore: 0 };
 
+    const swadeshi = getSwadeshiScore(p.brands);
     const categoryRaw = (p.categories ?? "").toLowerCase();
     const alternatives = getCategoryAlternatives(categoryRaw);
 
+    // FIX: Product name priority order
+    const productName = p.product_name_en ?? p.product_name ?? p.brands ?? "Unknown Product";
+
     return {
       barcode,
-      name: p.product_name_en ?? p.product_name ?? p.abbreviated_product_name ?? "Unknown Product",
+      name: productName,
       brand: p.brands ?? undefined,
       category: p.categories ?? undefined,
       nutriScore: grade,
-      nutriScorePoints: points,
+      nutriScorePoints: displayScore,
       isVeg,
       isVegan,
       isSwadeshi: swadeshi.score >= 70,
@@ -374,9 +772,10 @@ async function fetchFromOFF(barcode: string): Promise<Product | null> {
       source: "OpenFoodFacts",
       imageUrl: p.image_front_url ?? p.image_url ?? undefined,
       nutrition,
-      ingredients,
-      tips: generateHinglishTips(nutrition, grade),
+      ingredients: ingredients ? translateIngredients(ingredients) : "",
+      tips: nutritionComplete ? generateHinglishTips(nutrition, grade) : [],
       alternatives,
+      hasCompleteNutrition: nutritionComplete,
     };
   } catch {
     return null;
@@ -400,7 +799,6 @@ function getCategoryAlternatives(categoryRaw: string): Alternative[] {
     }
   }
 
-  // Default alternatives
   result.push({ type: "home", name: "Ghar ka khana", reason: "Fresh, no preservatives — hamesha best!" });
   result.push({ type: "shop", name: "Local brand dekho", reason: "Ingredients list padho — clean label dhundho!" });
   return result;
@@ -432,7 +830,6 @@ async function fetchFromLocalDB(barcode: string): Promise<Product | null> {
     const found = products.find(p => p.barcode === barcode);
     if (!found) return null;
 
-    // Enrich local product with swadeshi score + category alternatives
     const swadeshi = getSwadeshiScore(found.brand);
     const warnings = getHealthWarnings(found.nutrition ?? {});
 
@@ -441,12 +838,19 @@ async function fetchFromLocalDB(barcode: string): Promise<Product | null> {
       alternatives = getCategoryAlternatives((found.category ?? "").toLowerCase());
     }
 
+    // Normalize local product score too
+    const { displayScore } = found.nutrition && isNutritionComplete(found.nutrition)
+      ? calculateFSSAIGrade(found.nutrition)
+      : { displayScore: found.nutriScorePoints ?? 0 };
+
     return {
       ...found,
+      nutriScorePoints: displayScore,
       swadeshiScore: swadeshi.score,
       isSwadeshi: swadeshi.score >= 70,
       alternatives,
       tips: [...(found.tips ?? []), ...warnings],
+      hasCompleteNutrition: isNutritionComplete(found.nutrition ?? {}),
     };
   } catch {
     return null;
@@ -604,17 +1008,13 @@ export default function Product() {
     setProduct(null);
 
     (async () => {
-      // Step 1: Try local DB first
       let result = await fetchFromLocalDB(barcode);
-
-      // Step 2: If not found locally, try OFF API
       if (!result) {
         result = await fetchFromOFF(barcode);
       }
 
       if (result) {
         setProduct(result);
-        // GA4 tracking
         try {
           gtag("event", "product_viewed", {
             barcode,
@@ -661,7 +1061,7 @@ export default function Product() {
   const vibe = GRADE_VIBE[grade] ?? GRADE_VIBE["C"];
   const isUnhealthy = grade === "C" || grade === "D" || grade === "E";
   const swadeshi = getSwadeshiScore(product.brand);
-  const healthWarnings = getHealthWarnings(product.nutrition ?? {});
+  const healthWarnings = product.hasCompleteNutrition ? getHealthWarnings(product.nutrition ?? {}) : [];
 
   const homeAlts = (product.alternatives ?? []).filter(a => a.type === "home");
   const shopAlts = (product.alternatives ?? []).filter(a => a.type === "shop");
@@ -694,24 +1094,43 @@ export default function Product() {
           <p className="text-xs text-muted-foreground mt-1 opacity-60">via Open Food Facts 🌍</p>
         )}
 
-        <div className="absolute -bottom-12 shadow-xl">
-          <NutriScore score={product.nutriScore} points={product.nutriScorePoints} size="xl" showPoints />
-        </div>
+        {/* Grade sirf tab dikhao jab nutrition complete ho */}
+        {product.hasCompleteNutrition !== false && (
+          <div className="absolute -bottom-12 shadow-xl">
+            <NutriScore score={product.nutriScore} points={product.nutriScorePoints} size="xl" showPoints />
+          </div>
+        )}
       </div>
 
-      {/* ── SCROLL 1: Grade + Badges + Nutrition + Health Warnings ── */}
       <div className="px-4 pt-16 space-y-5">
 
-        {/* Grade Vibe */}
-        <motion.div
-          initial={{ opacity: 0, scale: 0.97 }}
-          animate={{ opacity: 1, scale: 1 }}
-          transition={{ duration: 0.3 }}
-          className={`rounded-2xl p-4 border ${vibe.bg} ${vibe.border}`}
-        >
-          <p className={`font-bold text-base ${vibe.text}`}>{vibe.headline}</p>
-          <p className={`text-sm mt-0.5 ${vibe.text} opacity-80`}>{vibe.sub}</p>
-        </motion.div>
+        {/* ── Incomplete Data Disclaimer ── */}
+        {product.source === "OpenFoodFacts" && !product.hasCompleteNutrition && (
+          <motion.div
+            initial={{ opacity: 0, y: -10 }}
+            animate={{ opacity: 1, y: 0 }}
+            className="rounded-2xl p-4 border bg-blue-50 border-blue-200"
+          >
+            <p className="font-bold text-blue-800 text-base">📋 Data Adhura Hai</p>
+            <p className="text-sm mt-1 text-blue-700">
+              🙏 Is product ka poora nutrition data abhi hamare paas nahi hai. Packet ke peeche zaroor dekhen. Hum jaldi iska data upload karenge!
+            </p>
+            <p className="text-xs mt-2 text-blue-500">Isliye health grade nahi dikh rahi — galat grade se better hai sach batana! 💙</p>
+          </motion.div>
+        )}
+
+        {/* Grade Vibe — sirf jab nutrition complete ho */}
+        {product.hasCompleteNutrition !== false && grade !== "?" && (
+          <motion.div
+            initial={{ opacity: 0, scale: 0.97 }}
+            animate={{ opacity: 1, scale: 1 }}
+            transition={{ duration: 0.3 }}
+            className={`rounded-2xl p-4 border ${vibe.bg} ${vibe.border}`}
+          >
+            <p className={`font-bold text-base ${vibe.text}`}>{vibe.headline}</p>
+            <p className={`text-sm mt-0.5 ${vibe.text} opacity-80`}>{vibe.sub}</p>
+          </motion.div>
+        )}
 
         {/* Badges */}
         <div className="flex flex-wrap gap-2 justify-center">
@@ -742,25 +1161,35 @@ export default function Product() {
           )}
         </div>
 
-        {/* Nutrition */}
-        <section>
-          <h3 className="font-semibold mb-3 flex items-center gap-2 text-base">
-            <Info size={17} className="text-primary" />
-            Kya hai andar? 👀 (per 100g)
-          </h3>
-          <div className="space-y-2">
-            <TrafficLight label="Calories 🔥" value={product.nutrition?.calories ?? null} level={getTrafficLevel(product.nutrition?.calories, "calories")} unit=" kcal" />
-            <TrafficLight label="Sugar (Cheeni) 🍬" value={product.nutrition?.sugars ?? null} level={getTrafficLevel(product.nutrition?.sugars, "sugar")} />
-            <TrafficLight label="Fat (Chiknaai) 🫙" value={product.nutrition?.fat ?? null} level={getTrafficLevel(product.nutrition?.fat, "fat")} />
-            <TrafficLight label="Salt (Namak) 🧂" value={product.nutrition?.salt ?? null} level={getTrafficLevel(product.nutrition?.salt, "salt")} />
-            {product.nutrition?.protein != null && (
-              <TrafficLight label="Protein 💪" value={product.nutrition.protein} level="low" />
-            )}
-            {product.nutrition?.fiber != null && (
-              <TrafficLight label="Fiber 🌾" value={product.nutrition.fiber} level="low" />
-            )}
-          </div>
-        </section>
+        {/* Nutrition — sirf jo data available hai woh dikhao */}
+        {product.nutrition && (
+          <section>
+            <h3 className="font-semibold mb-3 flex items-center gap-2 text-base">
+              <Info size={17} className="text-primary" />
+              Kya hai andar? 👀 (per 100g)
+            </h3>
+            <div className="space-y-2">
+              {product.nutrition.calories != null && (
+                <TrafficLight label="Calories 🔥" value={product.nutrition.calories} level={getTrafficLevel(product.nutrition.calories, "calories")} unit=" kcal" />
+              )}
+              {product.nutrition.sugars != null && (
+                <TrafficLight label="Sugar (Cheeni) 🍬" value={product.nutrition.sugars} level={getTrafficLevel(product.nutrition.sugars, "sugar")} />
+              )}
+              {product.nutrition.fat != null && (
+                <TrafficLight label="Fat (Chiknaai) 🫙" value={product.nutrition.fat} level={getTrafficLevel(product.nutrition.fat, "fat")} />
+              )}
+              {product.nutrition.salt != null && (
+                <TrafficLight label="Salt (Namak) 🧂" value={product.nutrition.salt} level={getTrafficLevel(product.nutrition.salt, "salt")} />
+              )}
+              {product.nutrition.protein != null && (
+                <TrafficLight label="Protein 💪" value={product.nutrition.protein} level="low" />
+              )}
+              {product.nutrition.fiber != null && (
+                <TrafficLight label="Fiber 🌾" value={product.nutrition.fiber} level="low" />
+              )}
+            </div>
+          </section>
+        )}
 
         {/* Health Warnings */}
         {healthWarnings.length > 0 && (
@@ -797,10 +1226,15 @@ export default function Product() {
           </section>
         )}
 
-        {/* Ingredients */}
+        {/* Ingredients — Hinglish mein */}
         {product.ingredients && (
           <section>
             <h3 className="font-semibold mb-2 text-base">Ingredients 🧪</h3>
+            {product.source === "OpenFoodFacts" && (
+              <p className="text-xs text-muted-foreground mb-2">
+                🟡 Packet pe laal/hare dot zaroor dekhen — Veg/Non-veg confirm karne ke liye!
+              </p>
+            )}
             <p className="text-sm text-muted-foreground leading-relaxed bg-muted/40 rounded-xl p-3">
               {product.ingredients}
             </p>
@@ -821,8 +1255,8 @@ export default function Product() {
         )}
       </div>
 
-      {/* ── SCROLL 2: Alternatives ── */}
-      {isUnhealthy && (homeAlts.length > 0 || shopAlts.length > 0) && (
+      {/* Alternatives */}
+      {isUnhealthy && product.hasCompleteNutrition && (homeAlts.length > 0 || shopAlts.length > 0) && (
         <div className="px-4 mt-5 space-y-4">
           <div className={`rounded-2xl overflow-hidden border ${grade === "E" ? "border-red-200" : "border-orange-200"}`}>
             <div className={`px-4 py-3 flex items-center gap-2 ${grade === "E" ? "bg-red-500" : "bg-orange-500"}`}>
@@ -861,7 +1295,7 @@ export default function Product() {
         </div>
       )}
 
-      {/* ── Action Buttons ── */}
+      {/* Action Buttons */}
       <div className="px-4 mt-6 grid grid-cols-2 gap-3 border-t pt-5">
         <Button variant="outline" onClick={handleSave} className="h-14 font-medium">
           <Save className="mr-2" size={18} /> Save Karo 📌
