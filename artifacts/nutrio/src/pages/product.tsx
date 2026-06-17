@@ -11,8 +11,6 @@ import { motion } from "framer-motion";
 
 declare function gtag(...args: unknown[]): void;
 
-// ─── Types ───────────────────────────────────────────────────────────────────
-
 interface NutriInfo {
   calories?: number;
   fat?: number;
@@ -52,8 +50,6 @@ interface Product {
   hasCompleteNutrition?: boolean;
 }
 
-// ─── Fun Facts ───────────────────────────────────────────────────────────────
-
 const FUN_FACTS = [
   "Parle-G duniya ka sabse zyada bikne wala biscuit brand hai! 🌍",
   "Dahi mein live probiotic bacteria hote hain jo gut health ke liye zaroori hain! 🦠",
@@ -81,8 +77,6 @@ const FUN_FACTS = [
   "ITC ka Sunfeast brand 2003 mein launch hua tha! 🍪",
   "Nestle 150+ saal se zyada purani company hai! 📅",
 ];
-
-// ─── Category Alternatives ───────────────────────────────────────────────────
 
 const CATEGORY_ALTERNATIVES: Record<string, { home: string[]; homeReasons: string[]; shop: string[]; shopReasons: string[] }> = {
   "instant noodles": {
@@ -213,10 +207,7 @@ const CATEGORY_ALTERNATIVES: Record<string, { home: string[]; homeReasons: strin
   },
 };
 
-// ─── Hinglish Ingredients Dictionary ─────────────────────────────────────────
-
 const INGREDIENTS_DICT: Record<string, string> = {
-  // Basic
   "sugar": "Cheeni (Sugar)",
   "salt": "Namak (Salt)",
   "water": "Paani (Water)",
@@ -234,8 +225,6 @@ const INGREDIENTS_DICT: Record<string, string> = {
   "sucrose": "Sucrose (Cheeni)",
   "dextrose": "Dextrose (Angoor Shakkar)",
   "jaggery": "Gur (Jaggery)",
-
-  // Flours & Grains
   "wheat flour": "Gehun ka Atta (Wheat Flour)",
   "refined wheat flour": "Maida (Refined Flour)",
   "maida": "Maida (Refined Flour)",
@@ -261,8 +250,6 @@ const INGREDIENTS_DICT: Record<string, string> = {
   "soy": "Soya",
   "quinoa": "Quinoa",
   "millet": "Bajra (Millet)",
-
-  // Oils & Fats
   "palm oil": "Palm Tel (Palm Oil) ⚠️",
   "palm olein": "Palm Olein Tel ⚠️",
   "sunflower oil": "Surajmukhi Tel (Sunflower Oil)",
@@ -281,13 +268,11 @@ const INGREDIENTS_DICT: Record<string, string> = {
   "lard": "Suar ki Charbi (Lard) 🚫",
   "cream": "Cream (Malai)",
   "milk fat": "Doodh ki Chiknaai (Milk Fat)",
-  "milk solids": "Doodh ke Ttte (Milk Solids)",
+  "milk solids": "Doodh ke Solid (Milk Solids)",
   "skimmed milk powder": "Tone Doodh ka Powder (Skimmed Milk)",
   "whey powder": "Whey Powder (Doodh ka Arq)",
   "whey": "Whey (Doodh ka Arq)",
   "casein": "Casein (Doodh Protein)",
-
-  // Dairy
   "whole milk": "Poora Doodh (Whole Milk)",
   "skim milk": "Tone Doodh (Skim Milk)",
   "condensed milk": "Condensed Doodh (Meetha Doodh)",
@@ -298,8 +283,6 @@ const INGREDIENTS_DICT: Record<string, string> = {
   "cheese": "Cheese (Paneer jaisa)",
   "cheddar": "Cheddar Cheese",
   "mozzarella": "Mozzarella Cheese",
-
-  // Spices & Masale
   "turmeric": "Haldi (Turmeric)",
   "cumin": "Jeera (Cumin)",
   "coriander": "Dhania (Coriander)",
@@ -333,8 +316,6 @@ const INGREDIENTS_DICT: Record<string, string> = {
   "tamarind": "Imli (Tamarind)",
   "amchur": "Amchur (Khatai)",
   "dry mango powder": "Amchur (Sukha Aam Powder)",
-
-  // Pulses & Nuts
   "peanuts": "Moongfali (Peanuts)",
   "groundnuts": "Moongfali (Groundnuts)",
   "almonds": "Badam (Almonds)",
@@ -354,8 +335,6 @@ const INGREDIENTS_DICT: Record<string, string> = {
   "chickpeas": "Chane (Chickpeas)",
   "green peas": "Matar (Green Peas)",
   "soybeans": "Soya Bean",
-
-  // Sweeteners
   "high fructose corn syrup": "Corn Syrup (Artificial Meethas) ⚠️",
   "corn syrup": "Corn Syrup ⚠️",
   "invert sugar": "Invert Sugar (Artificial Meethas)",
@@ -368,8 +347,6 @@ const INGREDIENTS_DICT: Record<string, string> = {
   "sorbitol": "Sorbitol (Sugar Alcohol)",
   "maltitol": "Maltitol (Sugar Alcohol)",
   "xylitol": "Xylitol (Sugar Alcohol)",
-
-  // Preservatives
   "sodium benzoate": "Sodium Benzoate (Preservative ⚠️)",
   "potassium sorbate": "Potassium Sorbate (Preservative)",
   "sodium nitrate": "Sodium Nitrate (Preservative ⚠️)",
@@ -389,8 +366,6 @@ const INGREDIENTS_DICT: Record<string, string> = {
   "ins 220": "INS 220 - Sulphur Dioxide (Preservative)",
   "ins 250": "INS 250 - Sodium Nitrite (Preservative ⚠️)",
   "ins 281": "INS 281 - Sodium Propionate (Preservative)",
-
-  // Emulsifiers & Stabilizers
   "lecithin": "Lecithin (Emulsifier)",
   "soy lecithin": "Soya Lecithin (Emulsifier)",
   "sunflower lecithin": "Sunflower Lecithin (Emulsifier)",
@@ -417,8 +392,6 @@ const INGREDIENTS_DICT: Record<string, string> = {
   "ins 412": "INS 412 - Guar Gum (Thickener)",
   "ins 407": "INS 407 - Carrageenan (Thickener)",
   "ins 440": "INS 440 - Pectin (Thickener)",
-
-  // Colors
   "caramel color": "Caramel Rang (Color)",
   "caramel colour": "Caramel Rang (Color)",
   "tartrazine": "Tartrazine (Peela Rang ⚠️)",
@@ -435,8 +408,6 @@ const INGREDIENTS_DICT: Record<string, string> = {
   "ins 124": "INS 124 - Ponceau Red (Color ⚠️)",
   "ins 150": "INS 150 - Caramel Color",
   "ins 171": "INS 171 - Titanium Dioxide (White Color ⚠️)",
-
-  // Flavor Enhancers
   "monosodium glutamate": "MSG (Taste Badhaane wala ⚠️)",
   "msg": "MSG (Taste Badhaane wala ⚠️)",
   "disodium inosinate": "Disodium Inosinate (Flavor Enhancer)",
@@ -450,8 +421,6 @@ const INGREDIENTS_DICT: Record<string, string> = {
   "ins 621": "INS 621 - MSG (Taste Enhancer ⚠️)",
   "ins 627": "INS 627 - Disodium Guanylate (Flavor)",
   "ins 631": "INS 631 - Disodium Inosinate (Flavor)",
-
-  // Anticaking & Raising Agents
   "sodium bicarbonate": "Meetha Soda (Baking Soda)",
   "baking soda": "Meetha Soda (Baking Soda)",
   "baking powder": "Baking Powder",
@@ -463,8 +432,6 @@ const INGREDIENTS_DICT: Record<string, string> = {
   "ins 500": "INS 500 - Sodium Bicarbonate (Soda)",
   "ins 503": "INS 503 - Ammonium Bicarbonate",
   "ins 341": "INS 341 - Calcium Phosphate",
-
-  // Antioxidants
   "tocopherol": "Tocopherol (Vitamin E - Antioxidant)",
   "vitamin e": "Vitamin E (Antioxidant)",
   "vitamin c": "Vitamin C (Antioxidant)",
@@ -476,8 +443,6 @@ const INGREDIENTS_DICT: Record<string, string> = {
   "ins 321": "INS 321 - BHT (Antioxidant ⚠️)",
   "ins 306": "INS 306 - Tocopherol (Vitamin E)",
   "ins 300": "INS 300 - Ascorbic Acid (Vitamin C)",
-
-  // Proteins
   "soy protein": "Soya Protein",
   "whey protein": "Whey Protein (Doodh Protein)",
   "pea protein": "Matar Protein",
@@ -488,8 +453,6 @@ const INGREDIENTS_DICT: Record<string, string> = {
   "egg white": "Ande ki Safedi (Egg White)",
   "egg yolk": "Ande ki Zardi (Egg Yolk)",
   "albumin": "Albumin (Anda Protein)",
-
-  // Fruits & Vegetables
   "tomato": "Tamatar (Tomato)",
   "onion": "Pyaz (Onion)",
   "potato": "Aloo (Potato)",
@@ -506,8 +469,6 @@ const INGREDIENTS_DICT: Record<string, string> = {
   "grape": "Angoor (Grape)",
   "pomegranate": "Anar (Pomegranate)",
   "amla": "Amla (Indian Gooseberry)",
-
-  // Meat & Non-Veg
   "chicken": "Murga (Chicken) 🍗",
   "beef": "Beef (Gaay ka Gosht) 🚫",
   "pork": "Suar ka Gosht (Pork) 🚫",
@@ -519,8 +480,6 @@ const INGREDIENTS_DICT: Record<string, string> = {
   "salmon": "Salmon Machli 🐟",
   "mutton": "Mutton (Bakre ka Gosht)",
   "lamb": "Lamb (Bakra)",
-
-  // Cocoa & Coffee
   "cocoa": "Cocoa (Chocolate ka base)",
   "cocoa butter": "Cocoa Butter (Chocolate Fat)",
   "cocoa powder": "Cocoa Powder",
@@ -528,8 +487,6 @@ const INGREDIENTS_DICT: Record<string, string> = {
   "coffee": "Coffee",
   "tea extract": "Chai ka Arq (Tea Extract)",
   "green tea extract": "Green Tea Arq",
-
-  // Additives - Acidity Regulators
   "sodium citrate": "Sodium Citrate (Acidity Regulator)",
   "potassium citrate": "Potassium Citrate (Acidity Regulator)",
   "calcium citrate": "Calcium Citrate",
@@ -539,14 +496,10 @@ const INGREDIENTS_DICT: Record<string, string> = {
   "ins 330": "INS 330 - Citric Acid (Nimbu Acid)",
   "ins 331": "INS 331 - Sodium Citrate",
   "ins 338": "INS 338 - Phosphoric Acid ⚠️",
-
-  // Humectants
   "glycerol": "Glycerol (Moisture Keeper)",
   "glycerin": "Glycerin (Moisture Keeper)",
   "propylene glycol": "Propylene Glycol ⚠️",
   "sorbitol syrup": "Sorbitol Syrup",
-
-  // Vitamins & Minerals (fortification)
   "iron": "Iron (Loha - Mineral)",
   "zinc": "Zinc (Mineral)",
   "calcium": "Calcium (Haddi Mineral)",
@@ -561,8 +514,6 @@ const INGREDIENTS_DICT: Record<string, string> = {
   "iodine": "Iodine (Thyroid Mineral)",
 };
 
-// ─── Translate Ingredients to Hinglish ───────────────────────────────────────
-
 function translateIngredients(ingredients: string): string {
   if (!ingredients) return "";
   let result = ingredients;
@@ -574,11 +525,9 @@ function translateIngredients(ingredients: string): string {
   return result;
 }
 
-// ─── FSSAI Grading ───────────────────────────────────────────────────────────
+// ─── STRICT FSSAI Grading ─────────────────────────────────────────────────────
 
 function calculateFSSAIGrade(nutrition: NutriInfo): { grade: string; points: number; displayScore: number } {
-  let points = 0;
-
   const sodium = nutrition.sodium ?? (nutrition.salt ? nutrition.salt * 400 : 0);
   const sugar = nutrition.sugars ?? 0;
   const fat = nutrition.fat ?? 0;
@@ -587,64 +536,83 @@ function calculateFSSAIGrade(nutrition: NutriInfo): { grade: string; points: num
   const protein = nutrition.protein ?? 0;
   const fiber = nutrition.fiber ?? 0;
 
-  // Negative (bad) points
-  if (sodium > 800) points += 4;
-  else if (sodium > 600) points += 3;
-  else if (sodium > 400) points += 2;
+  let points = 0;
+
+  // Sugar — strictest
+  if (sugar > 20) points += 8;
+  else if (sugar > 15) points += 6;
+  else if (sugar > 10) points += 4;
+  else if (sugar > 5) points += 2;
+  else if (sugar > 2) points += 1;
+
+  // Sodium
+  if (sodium > 800) points += 7;
+  else if (sodium > 600) points += 5;
+  else if (sodium > 400) points += 3;
   else if (sodium > 200) points += 1;
 
-  if (sugar > 27) points += 4;
-  else if (sugar > 22.5) points += 3;
-  else if (sugar > 15) points += 2;
-  else if (sugar > 5) points += 1;
+  // Saturated Fat
+  if (satFat > 10) points += 6;
+  else if (satFat > 5) points += 4;
+  else if (satFat > 3) points += 2;
+  else if (satFat > 1.5) points += 1;
 
-  if (satFat > 10) points += 3;
-  else if (satFat > 5) points += 2;
-  else if (satFat > 3) points += 1;
+  // Total Fat
+  if (fat > 20) points += 4;
+  else if (fat > 10) points += 2;
+  else if (fat > 3) points += 1;
 
-  if (calories > 500) points += 3;
-  else if (calories > 400) points += 2;
-  else if (calories > 200) points += 1;
+  // Calories
+  if (calories > 500) points += 5;
+  else if (calories > 400) points += 4;
+  else if (calories > 300) points += 3;
+  else if (calories > 200) points += 2;
+  else if (calories > 100) points += 1;
 
-  // Positive (good) points — subtract
-  if (protein > 10) points -= 2;
-  else if (protein > 5) points -= 1;
+  // Positive — very limited benefit
+  if (protein > 15) points -= 2;
+  else if (protein > 8) points -= 1;
 
-  if (fiber > 5) points -= 2;
-  else if (fiber > 2) points -= 1;
+  if (fiber > 6) points -= 2;
+  else if (fiber > 3) points -= 1;
+
+  // Hard caps
+  if (sugar > 10) points = Math.max(points, 6);
+  if (sugar > 15) points = Math.max(points, 10);
+  if (sodium > 800) points = Math.max(points, 10);
+  if (calories > 400 && fat > 15) points = Math.max(points, 6);
 
   points = Math.max(0, points);
 
   let grade = "A";
-  if (points >= 14) grade = "E";
-  else if (points >= 10) grade = "D";
+  if (points >= 16) grade = "E";
+  else if (points >= 11) grade = "D";
   else if (points >= 6) grade = "C";
   else if (points >= 3) grade = "B";
   else grade = "A";
 
-  // ── Normalize to 0–100 scale per grade ──
+  // Score: max A = 75 (100 practically impossible)
   let displayScore = 0;
-  if (grade === "A") {
-    // points 0–2 → 100–80
-    displayScore = Math.round(100 - (points / 2) * 20);
-  } else if (grade === "B") {
-    // points 3–5 → 79–60
-    displayScore = Math.round(79 - ((points - 3) / 2) * 19);
-  } else if (grade === "C") {
-    // points 6–9 → 59–40
-    displayScore = Math.round(59 - ((points - 6) / 3) * 19);
-  } else if (grade === "D") {
-    // points 10–13 → 39–20
-    displayScore = Math.round(39 - ((points - 10) / 3) * 19);
-  } else {
-    // points 14+ → 19–0
-    displayScore = Math.max(0, Math.round(19 - (points - 14) * 3));
-  }
+  if (grade === "A") displayScore = Math.round(75 - (points / 2) * 10);
+  else if (grade === "B") displayScore = Math.round(64 - ((points - 3) / 2) * 14);
+  else if (grade === "C") displayScore = Math.round(49 - ((points - 6) / 4) * 19);
+  else if (grade === "D") displayScore = Math.round(29 - ((points - 11) / 4) * 14);
+  else displayScore = Math.max(0, Math.round(14 - (points - 16) * 2));
 
   return { grade, points, displayScore };
 }
 
-// ─── Check if nutrition data is complete enough ───────────────────────────────
+// ─── Estimated Grade (incomplete data) ───────────────────────────────────────
+
+function calculateEstimatedGrade(nutrition: NutriInfo): { grade: string; displayScore: number } {
+  const { grade, displayScore } = calculateFSSAIGrade(nutrition);
+  // 1 level neeche — kyunki data incomplete hai
+  const gradeOrder = ["A", "B", "C", "D", "E"];
+  const idx = gradeOrder.indexOf(grade);
+  const estimatedGrade = gradeOrder[Math.min(idx + 1, 4)];
+  const estimatedScore = Math.max(0, displayScore - 15);
+  return { grade: estimatedGrade, displayScore: estimatedScore };
+}
 
 function isNutritionComplete(nutrition: NutriInfo): boolean {
   const hasCalories = nutrition.calories != null && nutrition.calories > 0;
@@ -653,7 +621,16 @@ function isNutritionComplete(nutrition: NutriInfo): boolean {
   return hasCalories || (hasSugar && hasFat);
 }
 
-// ─── Health Warnings ─────────────────────────────────────────────────────────
+function hasAnyNutrition(nutrition: NutriInfo): boolean {
+  return (
+    nutrition.calories != null ||
+    nutrition.sugars != null ||
+    nutrition.fat != null ||
+    nutrition.salt != null ||
+    nutrition.sodium != null ||
+    nutrition.protein != null
+  );
+}
 
 function getHealthWarnings(nutrition: NutriInfo): string[] {
   const warnings: string[] = [];
@@ -671,8 +648,6 @@ function getHealthWarnings(nutrition: NutriInfo): string[] {
 
   return warnings;
 }
-
-// ─── Swadeshi Score ──────────────────────────────────────────────────────────
 
 const SWADESHI_BRANDS: Record<string, number> = {
   "amul": 100, "tata": 95, "parle": 95, "britannia": 85, "haldiram": 100,
@@ -696,33 +671,32 @@ function getSwadeshiScore(brand?: string): { score: number; label: string; emoji
   return { score: 60, label: "Indian mein bana", emoji: "🇮🇳" };
 }
 
-// ─── Veg Detection from OFF ──────────────────────────────────────────────────
-
 function detectVegStatus(labels: string[], ingredients: string): { isVeg: boolean | null; isVegan: boolean } {
   const labelsStr = labels.join(" ").toLowerCase();
   const ingStr = ingredients.toLowerCase();
-
   const nonVegIngredients = ["gelatin", "gelatine", "lard", "tallow", "rennet", "chicken", "beef", "pork", "fish", "shrimp", "anchovy"];
   const hasNonVeg = nonVegIngredients.some(i => ingStr.includes(i));
-
-  if (labelsStr.includes("en:vegan") || labelsStr.includes("vegan")) {
-    return { isVeg: true, isVegan: true };
-  }
-  if (labelsStr.includes("en:vegetarian") || labelsStr.includes("vegetarian")) {
-    return { isVeg: true, isVegan: false };
-  }
+  if (labelsStr.includes("en:vegan") || labelsStr.includes("vegan")) return { isVeg: true, isVegan: true };
+  if (labelsStr.includes("en:vegetarian") || labelsStr.includes("vegetarian")) return { isVeg: true, isVegan: false };
   if (hasNonVeg) return { isVeg: false, isVegan: false };
-
   return { isVeg: null, isVegan: false };
 }
 
-// ─── OFF API Fetch ────────────────────────────────────────────────────────────
+// ─── OFF API — India first, worldwide fallback ────────────────────────────────
 
 async function fetchFromOFF(barcode: string): Promise<Product | null> {
   try {
-    // FIX: .net endpoint — CORS friendly for browser
-    const res = await fetch(`https://world.openfoodfacts.net/api/v2/product/${barcode}?fields=product_name,product_name_en,brands,categories,nutriments,ingredients_text_en,ingredients_text,labels_tags,nova_group,image_front_url`);
-    const data = await res.json();
+    const fields = "product_name,product_name_en,generic_name,brands,categories,nutriments,ingredients_text_en,ingredients_text,labels_tags,nova_group,image_front_url";
+
+    // First: India specific
+    let res = await fetch(`https://world.openfoodfacts.net/api/v2/product/${barcode}?fields=${fields}&cc=in&lc=en`);
+    let data = await res.json();
+
+    // Fallback: worldwide
+    if (data.status !== 1 && data.status !== "success") {
+      res = await fetch(`https://world.openfoodfacts.net/api/v2/product/${barcode}?fields=${fields}`);
+      data = await res.json();
+    }
 
     if (data.status !== 1 && data.status !== "success") return null;
     if (!data.product) return null;
@@ -746,16 +720,28 @@ async function fetchFromOFF(barcode: string): Promise<Product | null> {
     const { isVeg, isVegan } = detectVegStatus(labels, ingredients);
 
     const nutritionComplete = isNutritionComplete(nutrition);
-    const { grade, points, displayScore } = nutritionComplete
-      ? calculateFSSAIGrade(nutrition)
-      : { grade: "?", points: 0, displayScore: 0 };
+    const anyNutrition = hasAnyNutrition(nutrition);
+
+    let grade = "?";
+    let displayScore = 0;
+
+    if (nutritionComplete) {
+      const result = calculateFSSAIGrade(nutrition);
+      grade = result.grade;
+      displayScore = result.displayScore;
+    } else if (anyNutrition) {
+      // Estimated grade from partial data
+      const result = calculateEstimatedGrade(nutrition);
+      grade = result.grade;
+      displayScore = result.displayScore;
+    }
 
     const swadeshi = getSwadeshiScore(p.brands);
     const categoryRaw = (p.categories ?? "").toLowerCase();
     const alternatives = getCategoryAlternatives(categoryRaw);
 
-    // FIX: Product name priority order
-    const productName = p.product_name_en ?? p.product_name ?? p.brands ?? "Unknown Product";
+    // Product name — best available
+    const productName = p.product_name_en ?? p.product_name ?? p.generic_name ?? p.brands ?? "Unknown Product";
 
     return {
       barcode,
@@ -782,34 +768,23 @@ async function fetchFromOFF(barcode: string): Promise<Product | null> {
   }
 }
 
-// ─── Get Category Alternatives ────────────────────────────────────────────────
-
 function getCategoryAlternatives(categoryRaw: string): Alternative[] {
   const result: Alternative[] = [];
-
   for (const [key, val] of Object.entries(CATEGORY_ALTERNATIVES)) {
     if (categoryRaw.includes(key)) {
-      val.home.forEach((name, i) => {
-        result.push({ type: "home", name, reason: val.homeReasons[i] ?? "" });
-      });
-      val.shop.forEach((name, i) => {
-        result.push({ type: "shop", name, reason: val.shopReasons[i] ?? "" });
-      });
+      val.home.forEach((name, i) => result.push({ type: "home", name, reason: val.homeReasons[i] ?? "" }));
+      val.shop.forEach((name, i) => result.push({ type: "shop", name, reason: val.shopReasons[i] ?? "" }));
       return result;
     }
   }
-
   result.push({ type: "home", name: "Ghar ka khana", reason: "Fresh, no preservatives — hamesha best!" });
   result.push({ type: "shop", name: "Local brand dekho", reason: "Ingredients list padho — clean label dhundho!" });
   return result;
 }
 
-// ─── Hinglish Tips Generator ─────────────────────────────────────────────────
-
 function generateHinglishTips(nutrition: NutriInfo, grade: string): string[] {
   const tips: string[] = [];
   const sodium = nutrition.sodium ?? (nutrition.salt ? nutrition.salt * 400 : 0);
-
   if (grade === "E") tips.push("🚨 Yaar yeh toh danga hai sehat ke saath — seriously avoid karo!");
   if (grade === "D") tips.push("⚠️ Kabhi kabhi theek hai — but daily mat khao bhai!");
   if ((nutrition.sugars ?? 0) > 20) tips.push(`🍬 Sugar ${nutrition.sugars}g per 100g — bahut zyada hai yeh!`);
@@ -817,11 +792,8 @@ function generateHinglishTips(nutrition: NutriInfo, grade: string): string[] {
   if ((nutrition.calories ?? 0) > 400) tips.push(`🔥 ${nutrition.calories} calories per 100g — ek portion mein hi zyada ho jayega!`);
   if ((nutrition.protein ?? 0) > 10) tips.push(`💪 Protein ${nutrition.protein}g — yeh toh achha hai!`);
   if ((nutrition.fiber ?? 0) > 5) tips.push(`🌾 Fiber ${nutrition.fiber}g — gut ke liye achi cheez hai!`);
-
   return tips;
 }
-
-// ─── Local DB Fetch ───────────────────────────────────────────────────────────
 
 async function fetchFromLocalDB(barcode: string): Promise<Product | null> {
   try {
@@ -838,7 +810,6 @@ async function fetchFromLocalDB(barcode: string): Promise<Product | null> {
       alternatives = getCategoryAlternatives((found.category ?? "").toLowerCase());
     }
 
-    // Normalize local product score too
     const { displayScore } = found.nutrition && isNutritionComplete(found.nutrition)
       ? calculateFSSAIGrade(found.nutrition)
       : { displayScore: found.nutriScorePoints ?? 0 };
@@ -856,8 +827,6 @@ async function fetchFromLocalDB(barcode: string): Promise<Product | null> {
     return null;
   }
 }
-
-// ─── Loading Modes ────────────────────────────────────────────────────────────
 
 function LoadingScreen() {
   const [mode] = React.useState(() => Math.floor(Math.random() * 5));
@@ -904,21 +873,14 @@ function LoadingScreen() {
           <p className="text-muted-foreground text-sm">Product scan ho raha hai...</p>
         </>
       )}
-
       {mode === 1 && (
         <>
           <p className="text-lg font-bold text-center">Health Score Check Ho Raha Hai... 🎯</p>
           <div className="flex gap-2 items-end">
             {grades.map((g, i) => (
               <div key={g} className="flex flex-col items-center gap-1">
-                <div
-                  className="w-12 rounded-t-lg transition-all duration-300"
-                  style={{
-                    height: i === meterVal ? "80px" : "40px",
-                    backgroundColor: meterColors[i],
-                    opacity: i === meterVal ? 1 : 0.3,
-                  }}
-                />
+                <div className="w-12 rounded-t-lg transition-all duration-300"
+                  style={{ height: i === meterVal ? "80px" : "40px", backgroundColor: meterColors[i], opacity: i === meterVal ? 1 : 0.3 }} />
                 <span className="text-xs font-bold" style={{ color: meterColors[i] }}>{g}</span>
               </div>
             ))}
@@ -926,22 +888,16 @@ function LoadingScreen() {
           <p className="text-muted-foreground text-sm">FSSAI ke rules se compare ho raha hai...</p>
         </>
       )}
-
       {mode === 2 && (
         <>
           <div className="w-20 h-20 border-4 border-primary border-t-transparent rounded-full animate-spin" />
-          <motion.p
-            key={msgIdx}
-            initial={{ opacity: 0, y: 10 }}
-            animate={{ opacity: 1, y: 0 }}
-            className="text-base font-semibold text-center text-primary"
-          >
+          <motion.p key={msgIdx} initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }}
+            className="text-base font-semibold text-center text-primary">
             {hinglishMsgs[msgIdx]}
           </motion.p>
           <p className="text-muted-foreground text-xs">Thoda ruko yaar... 😄</p>
         </>
       )}
-
       {mode === 3 && (
         <>
           <p className="text-lg font-bold text-center">Checking... 🔍</p>
@@ -957,7 +913,6 @@ function LoadingScreen() {
           </div>
         </>
       )}
-
       {mode === 4 && (
         <>
           <div className="relative w-32 h-32 flex items-center justify-center">
@@ -979,8 +934,6 @@ function LoadingScreen() {
   );
 }
 
-// ─── Grade Vibe ───────────────────────────────────────────────────────────────
-
 const GRADE_VIBE: Record<string, { headline: string; sub: string; bg: string; text: string; border: string }> = {
   A: { headline: "Ekdum bindaas! ✅", sub: "Khao bina tension ke — full marks wala product hai!", bg: "bg-green-50", text: "text-green-800", border: "border-green-200" },
   B: { headline: "Theek thaak hai yaar 👍", sub: "Balanced choice — isko regularly kha sakte ho!", bg: "bg-emerald-50", text: "text-emerald-800", border: "border-emerald-200" },
@@ -988,8 +941,6 @@ const GRADE_VIBE: Record<string, { headline: string; sub: string; bg: string; te
   D: { headline: "Bhai soch lo ek baar... 😬", sub: "Yeh toh red flag hai 🚩 — healthier switch karo yaar!", bg: "bg-orange-50", text: "text-orange-800", border: "border-orange-200" },
   E: { headline: "Yaar yeh toh danga hai sehat ke saath! 🚨", sub: "Body pe direct attack 💀 — seriously avoid karo!", bg: "bg-red-50", text: "text-red-800", border: "border-red-200" },
 };
-
-// ─── Main Component ───────────────────────────────────────────────────────────
 
 export default function Product() {
   const { barcode } = useParams();
@@ -1002,16 +953,13 @@ export default function Product() {
 
   React.useEffect(() => {
     if (!barcode) return;
-
     setIsLoading(true);
     setNotFound(false);
     setProduct(null);
 
     (async () => {
       let result = await fetchFromLocalDB(barcode);
-      if (!result) {
-        result = await fetchFromOFF(barcode);
-      }
+      if (!result) result = await fetchFromOFF(barcode);
 
       if (result) {
         setProduct(result);
@@ -1062,29 +1010,26 @@ export default function Product() {
   const isUnhealthy = grade === "C" || grade === "D" || grade === "E";
   const swadeshi = getSwadeshiScore(product.brand);
   const healthWarnings = product.hasCompleteNutrition ? getHealthWarnings(product.nutrition ?? {}) : [];
-
   const homeAlts = (product.alternatives ?? []).filter(a => a.type === "home");
   const shopAlts = (product.alternatives ?? []).filter(a => a.type === "shop");
+  const isEstimated = !product.hasCompleteNutrition && grade !== "?";
 
   return (
     <div className="flex flex-col bg-background overflow-auto pb-8">
 
-      {/* ── Header ── */}
+      {/* Header */}
       <div className="relative bg-muted/30 pt-16 pb-12 px-6 flex flex-col items-center">
-        <Button
-          variant="ghost" size="icon"
+        <Button variant="ghost" size="icon"
           className="absolute top-4 left-4 bg-background/60 backdrop-blur-md rounded-full"
-          onClick={() => setLocation("/")}
-        >
+          onClick={() => setLocation("/")}>
           <ArrowLeft />
         </Button>
 
         <div className="w-36 h-36 bg-card rounded-2xl shadow-sm border p-2 flex items-center justify-center mb-5 overflow-hidden">
-          {product.imageUrl ? (
-            <img src={product.imageUrl} alt={product.name} className="max-w-full max-h-full object-contain" />
-          ) : (
-            <span className="text-5xl">🛒</span>
-          )}
+          {product.imageUrl
+            ? <img src={product.imageUrl} alt={product.name} className="max-w-full max-h-full object-contain" />
+            : <span className="text-5xl">🛒</span>
+          }
         </div>
 
         <h1 className="text-xl font-bold text-center mb-1 leading-snug">{product.name}</h1>
@@ -1094,8 +1039,7 @@ export default function Product() {
           <p className="text-xs text-muted-foreground mt-1 opacity-60">via Open Food Facts 🌍</p>
         )}
 
-        {/* Grade sirf tab dikhao jab nutrition complete ho */}
-        {product.hasCompleteNutrition !== false && (
+        {grade !== "?" && (
           <div className="absolute -bottom-12 shadow-xl">
             <NutriScore score={product.nutriScore} points={product.nutriScorePoints} size="xl" showPoints />
           </div>
@@ -1104,30 +1048,41 @@ export default function Product() {
 
       <div className="px-4 pt-16 space-y-5">
 
-        {/* ── Incomplete Data Disclaimer ── */}
+        {/* Incomplete Data — Naya Emotional Message */}
         {product.source === "OpenFoodFacts" && !product.hasCompleteNutrition && (
           <motion.div
             initial={{ opacity: 0, y: -10 }}
             animate={{ opacity: 1, y: 0 }}
             className="rounded-2xl p-4 border bg-blue-50 border-blue-200"
           >
-            <p className="font-bold text-blue-800 text-base">📋 Data Adhura Hai</p>
-            <p className="text-sm mt-1 text-blue-700">
-              🙏 Is product ka poora nutrition data abhi hamare paas nahi hai. Packet ke peeche zaroor dekhen. Hum jaldi iska data upload karenge!
+            <p className="font-bold text-blue-800 text-base">💙 Seedha dil se:</p>
+            <p className="text-sm mt-2 text-blue-700 leading-relaxed">
+              Bhai/Didi, yeh product hamare paas abhi naya hai. Jo data abhi hamare paas hai uske hisab se yeh product{" "}
+              {grade !== "?" ? (
+                <span className="font-bold">~{grade} estimated grade</span>
+              ) : (
+                "abhi grade nahi"
+              )}{" "}
+              mein aata hai. Hume aapke Health ki bahut Chinta hai.
             </p>
-            <p className="text-xs mt-2 text-blue-500">Isliye health grade nahi dikh rahi — galat grade se better hai sach batana! 💙</p>
+            <p className="text-sm mt-2 text-blue-600 font-medium">
+              Nutrio mein jo dikhta hai, woh sach hota hai. Hamesha. 😊
+            </p>
           </motion.div>
         )}
 
-        {/* Grade Vibe — sirf jab nutrition complete ho */}
-        {product.hasCompleteNutrition !== false && grade !== "?" && (
+        {/* Grade Vibe */}
+        {grade !== "?" && (
           <motion.div
             initial={{ opacity: 0, scale: 0.97 }}
             animate={{ opacity: 1, scale: 1 }}
             transition={{ duration: 0.3 }}
             className={`rounded-2xl p-4 border ${vibe.bg} ${vibe.border}`}
           >
-            <p className={`font-bold text-base ${vibe.text}`}>{vibe.headline}</p>
+            <p className={`font-bold text-base ${vibe.text}`}>
+              {vibe.headline}
+              {isEstimated && <span className="text-xs font-normal ml-2 opacity-70">(Estimated)</span>}
+            </p>
             <p className={`text-sm mt-0.5 ${vibe.text} opacity-80`}>{vibe.sub}</p>
           </motion.div>
         )}
@@ -1161,7 +1116,7 @@ export default function Product() {
           )}
         </div>
 
-        {/* Nutrition — sirf jo data available hai woh dikhao */}
+        {/* Nutrition */}
         {product.nutrition && (
           <section>
             <h3 className="font-semibold mb-3 flex items-center gap-2 text-base">
@@ -1200,9 +1155,7 @@ export default function Product() {
             </h3>
             <div className="space-y-2">
               {healthWarnings.map((w, i) => (
-                <div key={i} className="p-3 rounded-xl bg-red-50 border border-red-100 text-sm text-red-800 font-medium">
-                  {w}
-                </div>
+                <div key={i} className="p-3 rounded-xl bg-red-50 border border-red-100 text-sm text-red-800 font-medium">{w}</div>
               ))}
             </div>
           </section>
@@ -1226,7 +1179,7 @@ export default function Product() {
           </section>
         )}
 
-        {/* Ingredients — Hinglish mein */}
+        {/* Ingredients */}
         {product.ingredients && (
           <section>
             <h3 className="font-semibold mb-2 text-base">Ingredients 🧪</h3>
@@ -1255,43 +1208,54 @@ export default function Product() {
         )}
       </div>
 
-      {/* Alternatives */}
+      {/* Alternatives — New Card UI */}
       {isUnhealthy && product.hasCompleteNutrition && (homeAlts.length > 0 || shopAlts.length > 0) && (
         <div className="px-4 mt-5 space-y-4">
-          <div className={`rounded-2xl overflow-hidden border ${grade === "E" ? "border-red-200" : "border-orange-200"}`}>
-            <div className={`px-4 py-3 flex items-center gap-2 ${grade === "E" ? "bg-red-500" : "bg-orange-500"}`}>
-              <RefreshCw size={18} className="text-white" />
-              <div>
-                <p className="font-bold text-white text-base">Healthier Switch Kar! 🔄</p>
-                <p className="text-white/80 text-xs">Inhe try karo yaar — body khush ho jayegi!</p>
-              </div>
-            </div>
-
-            <div className="bg-white divide-y divide-gray-100">
-              {homeAlts.length > 0 && (
-                <div className="px-4 py-3">
-                  <p className="text-xs font-bold text-green-700 mb-2">🏠 Ghar Pe Banao:</p>
-                  {homeAlts.map((alt, i) => (
-                    <div key={i} className="mb-2">
-                      <p className="text-sm font-semibold">{alt.name}</p>
-                      <p className="text-xs text-green-700">{alt.reason}</p>
-                    </div>
-                  ))}
-                </div>
-              )}
-              {shopAlts.length > 0 && (
-                <div className="px-4 py-3">
-                  <p className="text-xs font-bold text-blue-700 mb-2">🛒 Shop Se Uthao:</p>
-                  {shopAlts.map((alt, i) => (
-                    <div key={i} className="mb-2">
-                      <p className="text-sm font-semibold">{alt.name}</p>
-                      <p className="text-xs text-blue-700">{alt.reason}</p>
-                    </div>
-                  ))}
-                </div>
-              )}
+          <div className={`rounded-2xl px-5 py-4 flex items-center gap-3 ${grade === "E" ? "bg-red-500" : "bg-orange-500"}`}>
+            <RefreshCw size={22} className="text-white" />
+            <div>
+              <p className="font-bold text-white text-lg">Healthier Switch Kar! 🔄</p>
+              <p className="text-white/80 text-sm">Inhe try karo — body khush ho jayegi!</p>
             </div>
           </div>
+
+          {homeAlts.length > 0 && (
+            <div className="space-y-3">
+              <p className="text-sm font-bold text-green-700">🏠 Ghar Pe Banao:</p>
+              {homeAlts.map((alt, i) => (
+                <motion.div key={i}
+                  initial={{ opacity: 0, y: 10 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ delay: i * 0.1 }}
+                  className="rounded-2xl border-2 border-green-200 bg-green-50 p-4 flex items-start gap-3">
+                  <div className="w-10 h-10 rounded-xl bg-green-500 flex items-center justify-center shrink-0 text-xl">🏠</div>
+                  <div>
+                    <p className="font-bold text-green-900 text-base leading-snug">{alt.name}</p>
+                    <p className="text-green-700 text-sm mt-0.5 leading-relaxed">{alt.reason}</p>
+                  </div>
+                </motion.div>
+              ))}
+            </div>
+          )}
+
+          {shopAlts.length > 0 && (
+            <div className="space-y-3">
+              <p className="text-sm font-bold text-blue-700">🛒 Shop Se Uthao:</p>
+              {shopAlts.map((alt, i) => (
+                <motion.div key={i}
+                  initial={{ opacity: 0, y: 10 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ delay: i * 0.1 }}
+                  className="rounded-2xl border-2 border-blue-200 bg-blue-50 p-4 flex items-start gap-3">
+                  <div className="w-10 h-10 rounded-xl bg-blue-500 flex items-center justify-center shrink-0 text-xl">🛒</div>
+                  <div>
+                    <p className="font-bold text-blue-900 text-base leading-snug">{alt.name}</p>
+                    <p className="text-blue-700 text-sm mt-0.5 leading-relaxed">{alt.reason}</p>
+                  </div>
+                </motion.div>
+              ))}
+            </div>
+          )}
         </div>
       )}
 
@@ -1316,3 +1280,4 @@ function getTrafficLevel(value: number | undefined | null, type: string): "low" 
   if (type === "calories") return value > 400 ? "high" : value > 100 ? "medium" : "low";
   return "low";
 }
+
