@@ -1,3 +1,4 @@
+
 import { useParams, useLocation } from "wouter";
 import React from "react";
 import { NutriScore } from "@/components/ui/nutri-score";
@@ -78,132 +79,506 @@ const FUN_FACTS = [
   "Nestle 150+ saal se zyada purani company hai! 📅",
 ];
 
+// ─── Category Alternatives — 31 categories, 4 home + 4 shop each ────────────
+
 const CATEGORY_ALTERNATIVES: Record<string, { home: string[]; homeReasons: string[]; shop: string[]; shopReasons: string[] }> = {
   "instant noodles": {
-    home: ["Daliya upma", "Poha"],
-    homeReasons: ["10 min mein ready, fiber zyada, sodium kam!", "Halka aur healthy — pet bhi bhar jayega!"],
-    shop: ["Bambino Atta Noodles", "Sunfeast Yippee Atta Noodles"],
-    shopReasons: ["Atta based hai — maida se better!", "Same price, zyada fiber!"],
+    home: ["Daliya upma", "Poha", "Vermicelli upma (Semiya)", "Besan ka cheela"],
+    homeReasons: [
+      "10 min mein ready, fiber zyada, sodium kam!",
+      "Halka aur healthy — pet bhi bhar jayega!",
+      "Light hai, jaldi pakta hai, kam oil!",
+      "High protein, no maida — instant jaisa fast!",
+    ],
+    shop: ["Bambino Atta Noodles", "Sunfeast Yippee Atta Noodles", "Knorr Soupy Noodles (Veg)", "Wai Wai Veg Atta Noodles"],
+    shopReasons: [
+      "Atta based hai — maida se better!",
+      "Same price, zyada fiber!",
+      "Kam maida, soup based — light option!",
+      "Atta based, kam processed!",
+    ],
   },
   "biscuits": {
-    home: ["Ragi cookies ghar pe", "Oats ke ladoo"],
-    homeReasons: ["Ragi se calcium milta hai!", "No maida, natural sweetener use karo!"],
-    shop: ["Britannia NutriChoice 5 Grain", "Digestive Biscuits"],
-    shopReasons: ["Multigrain — fiber zyada!", "Oats based — better for digestion!"],
+    home: ["Ragi cookies ghar pe", "Oats ke ladoo", "Besan ke nankhatai (less sugar)", "Til gud ladoo"],
+    homeReasons: [
+      "Ragi se calcium milta hai!",
+      "No maida, natural sweetener use karo!",
+      "Besan protein deta hai, ghar ka ghee use karo!",
+      "Til-gud combo — winter superfood, no maida!",
+    ],
+    shop: ["Britannia NutriChoice 5 Grain", "Digestive Biscuits", "Parle Hide & Seek Fab! (less sugar variant)", "Sunfeast Farmlite Digestive"],
+    shopReasons: [
+      "Multigrain — fiber zyada!",
+      "Oats based — better for digestion!",
+      "Better than cream biscuits!",
+      "Oats based, fiber zyada!",
+    ],
   },
   "chips & snacks": {
-    home: ["Roasted chana", "Makhana with salt"],
-    homeReasons: ["High protein, zero maida — best snack!", "Low fat, crunchy — same feel!"],
-    shop: ["Haldiram's Moong Dal", "Too Yumm Baked Chips"],
-    shopReasons: ["Protein rich namkeen!", "Baked hai — fried se better!"],
+    home: ["Roasted chana", "Makhana with salt", "Bhel puri ghar pe", "Roasted Murmura (Mamra)"],
+    homeReasons: [
+      "High protein, zero maida — best snack!",
+      "Low fat, crunchy — same feel!",
+      "Veggies + chutney — crunchy aur healthy!",
+      "Zero oil, light snack — bachpan ka favorite!",
+    ],
+    shop: ["Haldiram's Moong Dal", "Too Yumm Baked Chips", "Crax Roasted Corn (baked)", "Bingo Mad Angles Baked"],
+    shopReasons: [
+      "Protein rich namkeen!",
+      "Baked hai — fried se better!",
+      "Roasted, kam oil!",
+      "Baked option, kam fat!",
+    ],
   },
   "namkeen & snacks": {
-    home: ["Roasted chana", "Bhuna makhana"],
-    homeReasons: ["High protein snack!", "Low calorie, crunchy!"],
-    shop: ["Haldiram's Moong Dal", "Too Yumm Baked"],
-    shopReasons: ["Better than fried namkeen!", "Baked option!"],
+    home: ["Roasted chana", "Bhuna makhana", "Sukha bhel", "Roasted peanuts with namak"],
+    homeReasons: [
+      "High protein snack!",
+      "Low calorie, crunchy!",
+      "Light aur filling!",
+      "Protein + healthy fat, classic snack!",
+    ],
+    shop: ["Haldiram's Moong Dal", "Too Yumm Baked", "Haldiram's Roasted Chana Salted", "Bikano Roasted Moong"],
+    shopReasons: [
+      "Better than fried namkeen!",
+      "Baked option!",
+      "Roasted not fried!",
+      "High protein namkeen option!",
+    ],
   },
   "chocolate": {
-    home: ["Dates aur dry fruits", "Kela with peanut butter"],
-    homeReasons: ["Natural sugar, fiber bhi!", "Natural energy boost!"],
-    shop: ["Amul Dark Chocolate 70%", "Cadbury Bournville"],
-    shopReasons: ["Antioxidants zyada, sugar kam!", "Dark chocolate — better choice!"],
+    home: ["Dates aur dry fruits", "Kela with peanut butter", "Khajoor chocolate balls (homemade)", "Roasted makhana with honey drizzle"],
+    homeReasons: [
+      "Natural sugar, fiber bhi!",
+      "Natural energy boost!",
+      "Natural sweetness, no refined sugar!",
+      "Crunchy aur halka sweet — best of both!",
+    ],
+    shop: ["Amul Dark Chocolate 70%", "Cadbury Bournville", "Pascati Dark Chocolate", "ITC Fabelle Dark"],
+    shopReasons: [
+      "Antioxidants zyada, sugar kam!",
+      "Dark chocolate — better choice!",
+      "High cocoa, kam sugar!",
+      "Premium dark — antioxidants zyada!",
+    ],
   },
   "beverages": {
-    home: ["Nimbu paani with kala namak", "Jaljeera"],
-    homeReasons: ["Natural electrolytes, zero artificial sugar!", "Digestive bhi hai — desi classic!"],
-    shop: ["Coconut water", "Real Fruit Power"],
-    shopReasons: ["Natural hydration!", "Less sugar than cola!"],
+    home: ["Nimbu paani with kala namak", "Jaljeera", "Chaas (buttermilk) with jeera", "Aam panna (raw mango drink)"],
+    homeReasons: [
+      "Natural electrolytes, zero artificial sugar!",
+      "Digestive bhi hai — desi classic!",
+      "Cooling aur digestive — summer classic!",
+      "Natural electrolytes, zero added sugar!",
+    ],
+    shop: ["Coconut water", "Real Fruit Power", "Paper Boat Aamras", "Raw Pressery Cold Pressed Juice"],
+    shopReasons: [
+      "Natural hydration!",
+      "Less sugar than cola!",
+      "Less processed, real fruit base!",
+      "No added sugar, cold pressed!",
+    ],
   },
   "dairy": {
-    home: ["Ghar ka dahi", "Chaas with jeera"],
-    homeReasons: ["Fresh probiotics, no preservatives!", "Digestive drink — Ayurveda approved!"],
-    shop: ["Amul Dahi", "Amul Lassi (plain)"],
-    shopReasons: ["Good probiotic source!", "Better than sugary drinks!"],
+    home: ["Ghar ka dahi", "Chaas with jeera", "Paneer ghar pe banao", "Shrikhand (homemade, less sugar)"],
+    homeReasons: [
+      "Fresh probiotics, no preservatives!",
+      "Digestive drink — Ayurveda approved!",
+      "Fresh protein, no preservatives!",
+      "Probiotic + protein, control apna sugar!",
+    ],
+    shop: ["Amul Dahi", "Amul Lassi (plain)", "Mother Dairy Toned Dahi", "Nestle A+ Curd"],
+    shopReasons: [
+      "Good probiotic source!",
+      "Better than sugary drinks!",
+      "Good quality probiotic!",
+      "Trusted dairy brand!",
+    ],
   },
   "health drinks": {
-    home: ["Haldi doodh (golden milk)", "Sattu drink"],
-    homeReasons: ["Anti-inflammatory, natural immunity boost!", "High protein, desi superfood!"],
-    shop: ["Amul Kool Kesar", "Complan Natural"],
-    shopReasons: ["Less sugar than Horlicks!", "Better protein source!"],
+    home: ["Haldi doodh (golden milk)", "Sattu drink", "Ragi malt ghar pe", "Badam doodh (almond milk)"],
+    homeReasons: [
+      "Anti-inflammatory, natural immunity boost!",
+      "High protein, desi superfood!",
+      "Calcium aur iron rich — desi superfood!",
+      "Natural protein aur healthy fat!",
+    ],
+    shop: ["Amul Kool Kesar", "Complan Natural", "Manna Foods Ragi Malt", "Saffola Oats based drink"],
+    shopReasons: [
+      "Less sugar than Horlicks!",
+      "Better protein source!",
+      "Less sugar than Bournvita/Horlicks!",
+      "Better nutrient profile!",
+    ],
   },
   "packaged tea": {
-    home: ["Adrak tulsi chai", "Green tea ghar pe"],
-    homeReasons: ["Immunity boost — dadi ka nuskha!", "Antioxidants zyada, caffeine kam!"],
-    shop: ["Tata Tea Gold", "Lipton Green Tea"],
-    shopReasons: ["Good quality tea!", "Healthier than milk tea packets!"],
+    home: ["Adrak tulsi chai", "Green tea ghar pe", "Lemongrass chai", "Kadha (immunity boosting)"],
+    homeReasons: [
+      "Immunity boost — dadi ka nuskha!",
+      "Antioxidants zyada, caffeine kam!",
+      "Refreshing, zero caffeine spike!",
+      "Dadi ka nuskha — immunity ke liye best!",
+    ],
+    shop: ["Tata Tea Gold", "Lipton Green Tea", "Organic India Tulsi Green Tea", "Society Tea (plain)"],
+    shopReasons: [
+      "Good quality tea!",
+      "Healthier than milk tea packets!",
+      "Organic, no pesticides!",
+      "Simple, no added flavoring chemicals!",
+    ],
   },
   "breakfast cereals": {
-    home: ["Oats with fruits", "Daliya with milk"],
-    homeReasons: ["High fiber, no added sugar!", "Traditional superfood!"],
-    shop: ["Quaker Oats", "Saffola Oats"],
-    shopReasons: ["Plain oats — no sugar added!", "Good fiber source!"],
+    home: ["Oats with fruits", "Daliya with milk", "Poha with veggies", "Ragi porridge"],
+    homeReasons: [
+      "High fiber, no added sugar!",
+      "Traditional superfood!",
+      "Light, fiber rich, quick banta hai!",
+      "Calcium rich, gluten-free superfood!",
+    ],
+    shop: ["Quaker Oats", "Saffola Oats", "Bagrry's Oats", "True Elements Muesli (no added sugar)"],
+    shopReasons: [
+      "Plain oats — no sugar added!",
+      "Good fiber source!",
+      "Plain oats, no sugar coating!",
+      "Clean label, real nuts and fruits!",
+    ],
   },
   "ready to eat": {
-    home: ["Dal chawal ghar pe", "Khichdi"],
-    homeReasons: ["Fresh, no preservatives — body happy!", "One pot meal — healthy aur simple!"],
-    shop: ["MTR Oats Upma", "Gits Upma Mix"],
-    shopReasons: ["Less preservatives than others!", "Quick and healthier option!"],
+    home: ["Dal chawal ghar pe", "Khichdi", "Idli-Sambhar ghar pe", "Vegetable Pulao"],
+    homeReasons: [
+      "Fresh, no preservatives — body happy!",
+      "One pot meal — healthy aur simple!",
+      "Fermented, gut-friendly, light!",
+      "One pot, balanced — veggies bhi mil jayenge!",
+    ],
+    shop: ["MTR Oats Upma", "Gits Upma Mix", "MTR Ready to Eat Poha", "ITC Aashirvaad Khichdi Mix"],
+    shopReasons: [
+      "Less preservatives than others!",
+      "Quick and healthier option!",
+      "Less preservatives, traditional recipe!",
+      "Whole grain based, healthier mix!",
+    ],
   },
   "sauces & ketchup": {
-    home: ["Ghar ka tamatar chutney", "Hari chutney"],
-    homeReasons: ["No preservatives, fresh taste!", "Mint-coriander — digestive bhi!"],
-    shop: ["Kissan Mixed Fruit Jam (less sugar)", "Dr. Oetker Veeba"],
-    shopReasons: ["Less sugar than regular ketchup!", "Better ingredient list!"],
+    home: ["Ghar ka tamatar chutney", "Hari chutney", "Imli chutney ghar pe", "Pudina-dahi chutney"],
+    homeReasons: [
+      "No preservatives, fresh taste!",
+      "Mint-coriander — digestive bhi!",
+      "Tangy, no preservatives!",
+      "Probiotic + fresh herbs, cooling effect!",
+    ],
+    shop: ["Kissan Mixed Fruit Jam (less sugar)", "Dr. Oetker Veeba", "Veeba No Onion No Garlic range", "Mother's Recipe Chutney range"],
+    shopReasons: [
+      "Less sugar than regular ketchup!",
+      "Better ingredient list!",
+      "Clean ingredient list!",
+      "Traditional recipe, less additives!",
+    ],
   },
   "bread & bakery": {
-    home: ["Multigrain atta roti", "Oats roti"],
-    homeReasons: ["Fresh, no preservatives — best option!", "High fiber, healthy!"],
-    shop: ["Britannia Brown Bread", "Harvest Gold Brown"],
-    shopReasons: ["Fiber zyada than white bread!", "Whole wheat option!"],
+    home: ["Multigrain atta roti", "Oats roti", "Ragi roti", "Bajra roti"],
+    homeReasons: [
+      "Fresh, no preservatives — best option!",
+      "High fiber, healthy!",
+      "Gluten-free, calcium rich!",
+      "High fiber, winter superfood!",
+    ],
+    shop: ["Britannia Brown Bread", "Harvest Gold Brown", "English Oven Multigrain Bread", "Britannia 100% Whole Wheat Bread"],
+    shopReasons: [
+      "Fiber zyada than white bread!",
+      "Whole wheat option!",
+      "Multiple grains, more fiber!",
+      "True whole wheat, not just brown colored!",
+    ],
   },
   "juices": {
-    home: ["Fresh nimbu paani", "Ghar ka fresh juice"],
-    homeReasons: ["Real fruit, no concentrate, no sugar!", "100% natural — no comparison!"],
-    shop: ["Raw Pressery", "B Natural"],
-    shopReasons: ["No concentrate, real fruit!", "Less added sugar!"],
+    home: ["Fresh nimbu paani", "Ghar ka fresh juice", "Aloe vera juice ghar pe", "Anar (pomegranate) juice fresh"],
+    homeReasons: [
+      "Real fruit, no concentrate, no sugar!",
+      "100% natural — no comparison!",
+      "Digestive, no sugar added!",
+      "Antioxidant rich, naturally sweet!",
+    ],
+    shop: ["Raw Pressery", "B Natural", "Paper Boat Real Fruit options", "24 Mantra Organic Juice"],
+    shopReasons: [
+      "No concentrate, real fruit!",
+      "Less added sugar!",
+      "Minimal processing!",
+      "Organic, no synthetic preservatives!",
+    ],
   },
   "ice cream": {
-    home: ["Banana nice cream", "Dahi with fruits"],
-    homeReasons: ["Blend frozen banana — natural ice cream!", "Probiotic + natural sweet!"],
-    shop: ["Amul Sugar Free", "Kwality Walls Cornetto Light"],
-    shopReasons: ["Less sugar option!", "Lower calorie choice!"],
+    home: ["Banana nice cream", "Dahi with fruits", "Frozen fruit kulfi (mango/strawberry)", "Greek yogurt with honey, frozen"],
+    homeReasons: [
+      "Blend frozen banana — natural ice cream!",
+      "Probiotic + natural sweet!",
+      "Natural fruit sugar only!",
+      "High protein, low sugar treat!",
+    ],
+    shop: ["Amul Sugar Free", "Kwality Walls Cornetto Light", "Vadilal Sugar Free Range", "NIC (Natural Ice Cream) Fruit flavors"],
+    shopReasons: [
+      "Less sugar option!",
+      "Lower calorie choice!",
+      "Less sugar option!",
+      "Real fruit pulp based!",
+    ],
   },
   "cooking oils": {
-    home: ["Sarson ka tel", "Nariyal tel"],
-    homeReasons: ["Traditional Indian oil — heart friendly!", "Natural, good fats!"],
-    shop: ["Saffola Gold", "Fortune Kachi Ghani"],
-    shopReasons: ["Blended oil — better fat profile!", "Cold pressed — nutrients preserve!"],
+    home: ["Sarson ka tel", "Nariyal tel", "Til ka tel (cold pressed)", "Groundnut tel ghar ka"],
+    homeReasons: [
+      "Traditional Indian oil — heart friendly!",
+      "Natural, good fats!",
+      "Traditional, heart-healthy fats!",
+      "Good monounsaturated fats!",
+    ],
+    shop: ["Saffola Gold", "Fortune Kachi Ghani", "Dhara Mustard Oil", "Emami Healthy and Tasty"],
+    shopReasons: [
+      "Blended oil — better fat profile!",
+      "Cold pressed — nutrients preserve!",
+      "Pure cold-pressed option!",
+      "Balanced fat profile!",
+    ],
   },
   "frozen foods": {
-    home: ["Ghar ke parathe", "Fresh sabzi"],
-    homeReasons: ["No preservatives, fresh atta!", "Fresh is always best!"],
-    shop: ["ITC Aashirvaad Paratha", "Sumeru Paneer"],
-    shopReasons: ["Better than most frozen options!", "Good quality frozen!"],
+    home: ["Ghar ke parathe", "Fresh sabzi", "Vegetable cutlets ghar pe", "Stuffed paratha (methi/mooli)"],
+    homeReasons: [
+      "No preservatives, fresh atta!",
+      "Fresh is always best!",
+      "Control apna oil aur masala!",
+      "Fresh stuffing, no preservatives!",
+    ],
+    shop: ["ITC Aashirvaad Paratha", "Sumeru Paneer", "McCain Healthy (baked) options", "Godrej Yummiez Veg range"],
+    shopReasons: [
+      "Better than most frozen options!",
+      "Good quality frozen!",
+      "Baked variants kam oil use karte hain!",
+      "Decent quality frozen veg snacks!",
+    ],
   },
   "baby food": {
-    home: ["Ghar ka daliya", "Mashed banana"],
-    homeReasons: ["Fresh, no preservatives — best for baby!", "Natural, easy to digest!"],
-    shop: ["Organic India Baby", "Slurrp Farm"],
-    shopReasons: ["Organic option!", "Clean ingredients for baby!"],
+    home: ["Ghar ka daliya", "Mashed banana", "Khichdi for babies (moong dal)", "Steamed sabzi puree"],
+    homeReasons: [
+      "Fresh, no preservatives — best for baby!",
+      "Natural, easy to digest!",
+      "Easy digest, balanced protein!",
+      "Fresh vitamins, no additives!",
+    ],
+    shop: ["Organic India Baby", "Slurrp Farm", "Nestle Cerelac (low sugar variant)", "Timios Organic Baby Food"],
+    shopReasons: [
+      "Organic option!",
+      "Clean ingredients for baby!",
+      "Check sugar content carefully!",
+      "Organic, clean ingredients!",
+    ],
   },
   "protein & fitness": {
-    home: ["Sattu shake", "Dahi with banana"],
-    homeReasons: ["Desi protein — no additives!", "Natural protein + potassium!"],
-    shop: ["Muscleblaze Biozyme", "Amway Nutrilite"],
-    shopReasons: ["Good protein quality!", "Trusted brand!"],
+    home: ["Sattu shake", "Dahi with banana", "Paneer bhurji with veggies", "Boiled chana chaat"],
+    homeReasons: [
+      "Desi protein — no additives!",
+      "Natural protein + potassium!",
+      "High protein, low carb!",
+      "Protein + fiber combo, filling!",
+    ],
+    shop: ["Muscleblaze Biozyme", "Amway Nutrilite", "ON Gold Standard Whey", "Yogabar Protein Bars"],
+    shopReasons: [
+      "Good protein quality!",
+      "Trusted brand!",
+      "Trusted quality protein!",
+      "Clean label, real ingredients!",
+    ],
   },
   "spices & masala": {
-    home: ["Ghar ke whole spices", "Fresh haldi"],
-    homeReasons: ["Whole spices grind karo — zyada fresh!", "Fresh haldi mein curcumin zyada!"],
-    shop: ["Organic India Turmeric", "24 Mantra Organic"],
-    shopReasons: ["Organic option!", "No artificial colors!"],
+    home: ["Ghar ke whole spices", "Fresh haldi", "Ghar ka garam masala (sookha bhuna)", "Fresh kadi patta aur curry leaves"],
+    homeReasons: [
+      "Whole spices grind karo — zyada fresh!",
+      "Fresh haldi mein curcumin zyada!",
+      "Freshly roasted — aroma aur taste dono best!",
+      "Antioxidant rich, fresh hai toh better!",
+    ],
+    shop: ["Organic India Turmeric", "24 Mantra Organic", "Everest Organic Range", "Catch Pure Spices"],
+    shopReasons: [
+      "Organic option!",
+      "No artificial colors!",
+      "No added colors!",
+      "Pure, unadulterated spices!",
+    ],
   },
   "personal care": {
-    home: ["Neem paste for teeth", "Coconut oil"],
-    homeReasons: ["Traditional desi nuskha!", "Natural moisturizer!"],
-    shop: ["Patanjali Dant Kanti", "Himalaya"],
-    shopReasons: ["Natural herbal ingredients!", "Trusted natural brand!"],
+    home: ["Neem paste for teeth", "Coconut oil", "Multani mitti face pack", "Besan-haldi ubtan"],
+    homeReasons: [
+      "Traditional desi nuskha!",
+      "Natural moisturizer!",
+      "Natural cleansing, no chemicals!",
+      "Traditional skincare — glow naturally!",
+    ],
+    shop: ["Patanjali Dant Kanti", "Himalaya", "Forest Essentials (premium natural)", "Khadi Natural range"],
+    shopReasons: [
+      "Natural herbal ingredients!",
+      "Trusted natural brand!",
+      "Ayurvedic formulation!",
+      "Natural, chemical-free option!",
+    ],
+  },
+
+  // ─── 10 naye categories ───────────────────────────────────────────────────
+  "atta": {
+    home: ["Ghar pe chakki atta pisai", "Multigrain atta ghar pe banao (5 grain mix)", "Bajra-jowar mix atta", "Sprouted wheat atta"],
+    homeReasons: [
+      "Fresh pisai — nutrients zinda rehte hain!",
+      "Apna mix banao — fiber aur protein dono badhao!",
+      "Gluten-free option, minerals rich!",
+      "Sprouting se nutrients aur easily absorb hote hain!",
+    ],
+    shop: ["Aashirvaad Multigrain Atta", "Pillsbury Chakki Fresh Atta", "24 Mantra Organic Wheat Atta", "Patanjali Multigrain Atta"],
+    shopReasons: [
+      "Multiple grains, better fiber!",
+      "Stone-ground, fresher taste!",
+      "Organic, no pesticide residue!",
+      "Affordable multigrain option!",
+    ],
+  },
+  "ghee": {
+    home: ["Ghar ka desi ghee (makhan se banao)", "A2 cow ghee ghar pe", "Bilona method ghee", "Herbal ghee (haldi/ashwagandha infused)"],
+    homeReasons: [
+      "Sabse pure, full control quality pe!",
+      "A2 milk se behtar digestion!",
+      "Traditional churning method, nutrients intact!",
+      "Extra Ayurvedic benefits!",
+    ],
+    shop: ["Amul Pure Ghee", "Patanjali Cow Ghee", "Mother Dairy Ghee", "Anik Spray Ghee (controlled portion)"],
+    shopReasons: [
+      "Trusted, consistent quality!",
+      "Affordable pure ghee!",
+      "Good quality, widely available!",
+      "Portion control helps moderation!",
+    ],
+  },
+  "pickle": {
+    home: ["Ghar ka nimbu achaar (less oil)", "Lehsun-mirch achaar fresh", "Aam ka achaar ghar pe", "Gajar-shalgam achaar (winter special)"],
+    homeReasons: [
+      "Control oil aur namak apne hisab se!",
+      "Fresh banaya, preservatives zero!",
+      "Traditional recipe, no chemical preservative!",
+      "Seasonal, fresh, naturally fermented!",
+    ],
+    shop: ["Mother's Recipe (less oil variants)", "Priya Pickles (no added color)", "Nilon's Achaar Range", "Patanjali Achaar"],
+    shopReasons: [
+      "Lower oil content options available!",
+      "Cleaner ingredient list!",
+      "Traditional recipes, trusted brand!",
+      "Affordable, decent quality!",
+    ],
+  },
+  "papad": {
+    home: ["Ghar ka papad (urad dal se)", "Moong dal papad ghar pe", "Roasted papad (bina tel)", "Sabudana papad"],
+    homeReasons: [
+      "Sun-dried, no preservatives!",
+      "High protein, light snack!",
+      "Roast karo fry mat karo — kam oil!",
+      "Light, easy digest!",
+    ],
+    shop: ["Lijjat Papad (roast karo, fry nahi)", "MTR Papad", "Swad Papad", "24 Mantra Organic Papad"],
+    shopReasons: [
+      "Roast karne se healthier hota hai!",
+      "Good quality, consistent taste!",
+      "Affordable daily option!",
+      "Organic, clean ingredients!",
+    ],
+  },
+  "mithai": {
+    home: ["Khajoor-mewa ladoo", "Besan ladoo (less sugar, ghar ka ghee)", "Til-gud chikki ghar pe", "Fruit halwa (gajar/lauki, less sugar)"],
+    homeReasons: [
+      "Natural sugar only, fiber bhi milta hai!",
+      "Control sugar quantity, protein bhi!",
+      "Winter superfood, calcium rich!",
+      "Vitamins aur fiber, kam refined sugar!",
+    ],
+    shop: ["Haldiram's Sugar-Free Mithai", "Anand Sweets (less sugar range)", "Bikano Dry Fruit Sweets", "Karachi Bakery Dry Fruit options"],
+    shopReasons: [
+      "Diabetic-friendly option!",
+      "Better sugar control!",
+      "Nutrient-dense dry fruit base!",
+      "Less refined sugar than regular mithai!",
+    ],
+  },
+  "energy drink": {
+    home: ["Nimbu-shehad-namak paani", "Kesar-badam doodh thanda", "Coconut water with chia seeds", "Ginger-lemon-honey shot"],
+    homeReasons: [
+      "Natural electrolytes, instant energy!",
+      "Sustained energy, no sugar crash!",
+      "Hydration + fiber, natural boost!",
+      "Natural energy, anti-inflammatory bhi!",
+    ],
+    shop: ["Tata Gluco Plus", "Electral (ORS, doctor approved)", "Paper Boat Jal Jeera", "Packaged coconut water (no added sugar)"],
+    shopReasons: [
+      "Less caffeine, simple glucose!",
+      "Proper hydration formula, no harmful stimulants!",
+      "Natural, traditional recipe based!",
+      "Pure hydration, no added sugar!",
+    ],
+  },
+  "pasta": {
+    home: ["Vegetable seviyan upma", "Whole wheat pasta ghar pe (homemade sauce)", "Dalia pasta substitute", "Moong dal seviyan"],
+    homeReasons: [
+      "Light, customizable veggies!",
+      "Control sodium, fresh tomato sauce!",
+      "High fiber, protein rich alternative!",
+      "Protein-rich, light digest!",
+    ],
+    shop: ["Veeba Whole Wheat Pasta", "24 Mantra Organic Pasta", "Bambino Vermicelli (atta based)", "Weikfield Wheat Pasta"],
+    shopReasons: [
+      "Whole wheat, more fiber!",
+      "Organic, clean ingredients!",
+      "Atta based, better than refined semiya!",
+      "Decent fiber content!",
+    ],
+  },
+  "soup": {
+    home: ["Tamatar shorba ghar pe", "Dal ka soup (moong/masoor)", "Vegetable clear soup", "Sweet corn soup ghar pe (less corn flour)"],
+    homeReasons: [
+      "Fresh, no MSG, vitamin C rich!",
+      "Protein rich, light aur filling!",
+      "Fiber aur vitamins, customizable veggies!",
+      "Control thickness, fresh corn use karo!",
+    ],
+    shop: ["Knorr Healthy Soup range (check sodium)", "Continental Soup (low sodium variant)", "MTR Instant Soup Mix", "Maggi Soup (occasional)"],
+    shopReasons: [
+      "Compare sodium content carefully!",
+      "Lower sodium than regular!",
+      "Decent quality mix!",
+      "Convenient but moderate frequency rakho!",
+    ],
+  },
+  "jam": {
+    home: ["Ghar ka mixed fruit jam (less sugar)", "Khajoor-peanut spread ghar pe", "Amla murabba spread", "Til-gud spread (chikki paste)"],
+    homeReasons: [
+      "Control sugar, real fruit pectin!",
+      "Natural sweetness, protein bhi milta hai!",
+      "Vitamin C rich, immunity booster!",
+      "Calcium aur iron rich, no preservative!",
+    ],
+    shop: ["Mapro Mixed Fruit Jam (less sugar)", "Pintola Peanut Butter (natural, no added sugar)", "Dabur Real Fruit Spread", "Nutty Yogi Nut Butters"],
+    shopReasons: [
+      "Lower sugar option!",
+      "Clean ingredients, just peanuts!",
+      "Real fruit base!",
+      "No palm oil, pure nut butter!",
+    ],
+  },
+  "dry fruits": {
+    home: ["Mixed dry fruits ghar pe roast karo", "Khajoor-oats energy ladoo", "Til-peanut chikki ghar pe", "Roasted chana-gud mix"],
+    homeReasons: [
+      "Fresh roasted, no added oil/salt!",
+      "Natural sugar, fiber rich, no preservatives!",
+      "Protein + healthy fat, traditional recipe!",
+      "High protein, natural jaggery sweetness!",
+    ],
+    shop: ["Yogabar Energy Bars (check sugar)", "RiteBite Max Protein Bars", "Happilo Roasted Dry Fruits (unsalted)", "True Elements Trail Mix"],
+    shopReasons: [
+      "Compare sugar content across brands!",
+      "Higher protein, lower sugar option!",
+      "No added oil, just roasted!",
+      "Clean ingredient trail mix!",
+    ],
   },
 };
 
@@ -226,8 +601,8 @@ const INGREDIENTS_DICT: Record<string, string> = {
   "dextrose": "Dextrose (Angoor Shakkar)",
   "jaggery": "Gur (Jaggery)",
   "wheat flour": "Gehun ka Atta (Wheat Flour)",
-  "refined wheat flour": "Maida (Refined Flour)",
-  "maida": "Maida (Refined Flour)",
+  "refined wheat flour": "Maida (Refined Flour) ⚠️",
+  "maida": "Maida (Refined Flour) ⚠️",
   "whole wheat flour": "Gehun ka Atta (Whole Wheat)",
   "rice flour": "Chawal ka Atta (Rice Flour)",
   "corn flour": "Makki ka Atta (Corn Flour)",
@@ -260,7 +635,7 @@ const INGREDIENTS_DICT: Record<string, string> = {
   "groundnut oil": "Moongfali Tel (Groundnut Oil)",
   "peanut oil": "Moongfali Tel (Peanut Oil)",
   "sesame oil": "Til ka Tel (Sesame Oil)",
-  "vegetable oil": "Vanasapati Tel (Vegetable Oil)",
+  "vegetable oil": "Vanasapati Tel (Vegetable Oil) ⚠️",
   "hydrogenated vegetable fat": "Vanaspati (Hydrogenated Fat) ⚠️",
   "vanaspati": "Vanaspati ⚠️",
   "margarine": "Margarine ⚠️",
@@ -525,9 +900,46 @@ function translateIngredients(ingredients: string): string {
   return result;
 }
 
-// ─── STRICT FSSAI Grading ─────────────────────────────────────────────────────
+// ─── Indian-context ingredient penalties ─────────────────────────────────────
 
-function calculateFSSAIGrade(nutrition: NutriInfo): { grade: string; points: number; displayScore: number } {
+function getMaidaPenalty(ingredients: string): number {
+  if (!ingredients) return 0;
+  const ing = ingredients.toLowerCase();
+  if (/\bmaida\b/.test(ing)) return 3;
+  if (/refined\s+(wheat\s+)?flour/.test(ing)) return 3;
+  // Loose detection — generic "wheat flour" (bina "whole" ke) bhi maida-risk maana
+  if (/wheat flour/.test(ing) && !/whole\s*wheat\s*flour/.test(ing)) return 3;
+  return 0;
+}
+
+function getPalmOilPenalty(ingredients: string): number {
+  if (!ingredients) return 0;
+  const ing = ingredients.toLowerCase();
+  if (/palm\s*(oil|olein|tel)/.test(ing)) return 2;
+  // Loose detection — generic "vegetable oil" India mein aksar palm-based hota hai
+  if (/vegetable oil/.test(ing)) return 2;
+  return 0;
+}
+
+const HARMFUL_ADDITIVE_TERMS = [
+  "tbhq", "bha", "bht", "tartrazine", "sunset yellow", "carmoisine",
+  "allura red", "ins 319", "ins 320", "ins 321", "ins 102", "ins 110",
+  "ins 122", "ins 124",
+];
+
+function getHarmfulAdditivePenalty(ingredients: string): number {
+  if (!ingredients) return 0;
+  const ing = ingredients.toLowerCase();
+  let count = 0;
+  for (const term of HARMFUL_ADDITIVE_TERMS) {
+    if (ing.includes(term)) count++;
+  }
+  return Math.min(count * 3, 12);
+}
+
+// ─── STRICT FSSAI Grading — Indian Context ───────────────────────────────────
+
+function calculateFSSAIGrade(nutrition: NutriInfo, ingredients: string = ""): { grade: string; points: number; displayScore: number } {
   const sodium = nutrition.sodium ?? (nutrition.salt ? nutrition.salt * 400 : 0);
   const sugar = nutrition.sugars ?? 0;
   const fat = nutrition.fat ?? 0;
@@ -551,36 +963,35 @@ function calculateFSSAIGrade(nutrition: NutriInfo): { grade: string; points: num
   else if (sodium > 400) points += 3;
   else if (sodium > 200) points += 1;
 
-  // Saturated Fat
+  // Saturated Fat (total fat double-counting hata diya)
   if (satFat > 10) points += 6;
   else if (satFat > 5) points += 4;
   else if (satFat > 3) points += 2;
   else if (satFat > 1.5) points += 1;
 
-  // Total Fat
-  if (fat > 20) points += 4;
-  else if (fat > 10) points += 2;
-  else if (fat > 3) points += 1;
+  // Calories — Indian-context tiers (150/250/350/450)
+  if (calories > 450) points += 5;
+  else if (calories > 350) points += 4;
+  else if (calories > 250) points += 3;
+  else if (calories > 150) points += 2;
 
-  // Calories
-  if (calories > 500) points += 5;
-  else if (calories > 400) points += 4;
-  else if (calories > 300) points += 3;
-  else if (calories > 200) points += 2;
-  else if (calories > 100) points += 1;
-
-  // Positive — very limited benefit
+  // Positive — limited benefit
   if (protein > 15) points -= 2;
   else if (protein > 8) points -= 1;
 
   if (fiber > 6) points -= 2;
   else if (fiber > 3) points -= 1;
 
+  // Indian-specific ingredient penalties
+  points += getMaidaPenalty(ingredients);
+  points += getPalmOilPenalty(ingredients);
+  points += getHarmfulAdditivePenalty(ingredients);
+
   // Hard caps
   if (sugar > 10) points = Math.max(points, 6);
   if (sugar > 15) points = Math.max(points, 10);
   if (sodium > 800) points = Math.max(points, 10);
-  if (calories > 400 && fat > 15) points = Math.max(points, 6);
+  if (calories > 350 && satFat > 5) points = Math.max(points, 6);
 
   points = Math.max(0, points);
 
@@ -591,22 +1002,22 @@ function calculateFSSAIGrade(nutrition: NutriInfo): { grade: string; points: num
   else if (points >= 3) grade = "B";
   else grade = "A";
 
-  // Score: max A = 75 (100 practically impossible)
+  // Score: max A = 85 (Indian-context ceiling)
   let displayScore = 0;
-  if (grade === "A") displayScore = Math.round(75 - (points / 2) * 10);
-  else if (grade === "B") displayScore = Math.round(64 - ((points - 3) / 2) * 14);
-  else if (grade === "C") displayScore = Math.round(49 - ((points - 6) / 4) * 19);
-  else if (grade === "D") displayScore = Math.round(29 - ((points - 11) / 4) * 14);
-  else displayScore = Math.max(0, Math.round(14 - (points - 16) * 2));
+  if (grade === "A") displayScore = Math.round(85 - (points / 2) * 10);
+  else if (grade === "B") displayScore = Math.round(74 - ((points - 3) / 2) * 14);
+  else if (grade === "C") displayScore = Math.round(59 - ((points - 6) / 4) * 19);
+  else if (grade === "D") displayScore = Math.round(39 - ((points - 11) / 4) * 14);
+  else displayScore = Math.max(0, Math.round(24 - (points - 16) * 2));
 
   return { grade, points, displayScore };
 }
 
-// ─── Estimated Grade (incomplete data) ───────────────────────────────────────
+// ─── Estimated Grade (incomplete data, par jitna accurate ho sake) ───────────
 
-function calculateEstimatedGrade(nutrition: NutriInfo): { grade: string; displayScore: number } {
-  const { grade, displayScore } = calculateFSSAIGrade(nutrition);
-  // 1 level neeche — kyunki data incomplete hai
+function calculateEstimatedGrade(nutrition: NutriInfo, ingredients: string = ""): { grade: string; displayScore: number } {
+  const { grade, displayScore } = calculateFSSAIGrade(nutrition, ingredients);
+  // 1 level neeche — kyunki nutrition data incomplete hai
   const gradeOrder = ["A", "B", "C", "D", "E"];
   const idx = gradeOrder.indexOf(grade);
   const estimatedGrade = gradeOrder[Math.min(idx + 1, 4)];
@@ -630,6 +1041,10 @@ function hasAnyNutrition(nutrition: NutriInfo): boolean {
     nutrition.sodium != null ||
     nutrition.protein != null
   );
+}
+
+function hasIngredientsData(ingredients: string): boolean {
+  return !!ingredients && ingredients.trim().length > 0;
 }
 
 function getHealthWarnings(nutrition: NutriInfo): string[] {
@@ -682,11 +1097,34 @@ function detectVegStatus(labels: string[], ingredients: string): { isVeg: boolea
   return { isVeg: null, isVegan: false };
 }
 
+// ─── Claude Vision naming fallback ───────────────────────────────────────────
+// NOTE: Yeh ek Netlify serverless function endpoint call karta hai.
+// Production mein kaam karne ke liye `/netlify/functions/identify-product.ts`
+// banana hoga jisme Anthropic API key SERVER-SIDE (environment variable) rakhni hai.
+// Client-side (yeh file) mein API key KABHI mat daalna — public bundle mein expose ho jayegi.
+// Jab tak woh function nahi banta, yeh call simply fail hoga aur "Naya Product 🆕"
+// dikhega — koi crash ya error user ko nahi dikhega.
+async function fetchNameFromVision(imageUrl: string): Promise<{ name: string; brand: string } | null> {
+  try {
+    const res = await fetch("/.netlify/functions/identify-product", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ imageUrl }),
+    });
+    if (!res.ok) return null;
+    const data = await res.json();
+    if (!data?.name) return null;
+    return { name: data.name, brand: data.brand ?? "" };
+  } catch {
+    return null;
+  }
+}
+
 // ─── OFF API — India first, worldwide fallback ────────────────────────────────
 
 async function fetchFromOFF(barcode: string): Promise<Product | null> {
   try {
-    const fields = "product_name,product_name_en,generic_name,brands,categories,nutriments,ingredients_text_en,ingredients_text,labels_tags,nova_group,image_front_url";
+    const fields = "product_name,product_name_en,product_name_in,generic_name,brands,categories,nutriments,ingredients_text_en,ingredients_text,ingredients_text_in,labels_tags,nova_group,image_front_url";
 
     // First: India specific
     let res = await fetch(`https://world.openfoodfacts.net/api/v2/product/${barcode}?fields=${fields}&cc=in&lc=en`);
@@ -716,22 +1154,25 @@ async function fetchFromOFF(barcode: string): Promise<Product | null> {
     };
 
     const labels: string[] = p.labels_tags ?? [];
-    const ingredients = p.ingredients_text_en ?? p.ingredients_text ?? "";
-    const { isVeg, isVegan } = detectVegStatus(labels, ingredients);
+    // India-first ingredient priority
+    const ingredientsRaw = p.ingredients_text_in ?? p.ingredients_text_en ?? p.ingredients_text ?? "";
+    const { isVeg, isVegan } = detectVegStatus(labels, ingredientsRaw);
 
     const nutritionComplete = isNutritionComplete(nutrition);
     const anyNutrition = hasAnyNutrition(nutrition);
+    const ingredientsAvailable = hasIngredientsData(ingredientsRaw);
 
     let grade = "?";
     let displayScore = 0;
 
-    if (nutritionComplete) {
-      const result = calculateFSSAIGrade(nutrition);
+    // Naya rule: grade sirf tab banega jab ingredients AUR nutrition dono mein
+    // kam se kam kuch data ho. Dono mein se ek bhi bilkul missing hai toh grade nahi denge.
+    if (ingredientsAvailable && nutritionComplete) {
+      const result = calculateFSSAIGrade(nutrition, ingredientsRaw);
       grade = result.grade;
       displayScore = result.displayScore;
-    } else if (anyNutrition) {
-      // Estimated grade from partial data
-      const result = calculateEstimatedGrade(nutrition);
+    } else if (ingredientsAvailable && anyNutrition) {
+      const result = calculateEstimatedGrade(nutrition, ingredientsRaw);
       grade = result.grade;
       displayScore = result.displayScore;
     }
@@ -740,13 +1181,27 @@ async function fetchFromOFF(barcode: string): Promise<Product | null> {
     const categoryRaw = (p.categories ?? "").toLowerCase();
     const alternatives = getCategoryAlternatives(categoryRaw);
 
-    // Product name — best available
-    const productName = p.product_name_en ?? p.product_name ?? p.generic_name ?? p.brands ?? "Unknown Product";
+    // Product name — India-first priority chain
+    let productName: string = p.product_name_in ?? p.product_name_en ?? p.product_name ?? p.generic_name ?? p.brands ?? "";
+    let resolvedBrand: string | undefined = p.brands ?? undefined;
+
+    const imageUrl: string | undefined = p.image_front_url ?? p.image_url ?? undefined;
+
+    // Last-resort: Claude Vision se naam padhne ki koshish (sirf jab kuch bhi naam na mile)
+    if (!productName && imageUrl) {
+      const vision = await fetchNameFromVision(imageUrl);
+      if (vision?.name) {
+        productName = vision.name;
+        if (!resolvedBrand && vision.brand) resolvedBrand = vision.brand;
+      }
+    }
+
+    if (!productName) productName = "Naya Product 🆕";
 
     return {
       barcode,
       name: productName,
-      brand: p.brands ?? undefined,
+      brand: resolvedBrand,
       category: p.categories ?? undefined,
       nutriScore: grade,
       nutriScorePoints: displayScore,
@@ -756,10 +1211,10 @@ async function fetchFromOFF(barcode: string): Promise<Product | null> {
       swadeshiScore: swadeshi.score,
       isUltraProcessed: (p.nova_group ?? 0) >= 4,
       source: "OpenFoodFacts",
-      imageUrl: p.image_front_url ?? p.image_url ?? undefined,
+      imageUrl,
       nutrition,
-      ingredients: ingredients ? translateIngredients(ingredients) : "",
-      tips: nutritionComplete ? generateHinglishTips(nutrition, grade) : [],
+      ingredients: ingredientsRaw ? translateIngredients(ingredientsRaw) : "",
+      tips: nutritionComplete ? generateHinglishTips(nutrition, grade, ingredientsRaw) : [],
       alternatives,
       hasCompleteNutrition: nutritionComplete,
     };
@@ -777,21 +1232,30 @@ function getCategoryAlternatives(categoryRaw: string): Alternative[] {
       return result;
     }
   }
-  result.push({ type: "home", name: "Ghar ka khana", reason: "Fresh, no preservatives — hamesha best!" });
-  result.push({ type: "shop", name: "Local brand dekho", reason: "Ingredients list padho — clean label dhundho!" });
+  result.push({ type: "home", name: "Ghar ka khana isi tarah ka banayo", reason: "Apne control mein ingredients — fresh aur sabse best!" });
+  result.push({ type: "shop", name: "FSSAI mark + chhoti ingredient list wala dhundo", reason: "Jitni choti list, utna better — packet ke peeche zaroor padhna!" });
   return result;
 }
 
-function generateHinglishTips(nutrition: NutriInfo, grade: string): string[] {
+function pickRotating<T>(arr: T[], count: number): T[] {
+  if (arr.length <= count) return arr;
+  const shuffled = [...arr].sort(() => Math.random() - 0.5);
+  return shuffled.slice(0, count);
+}
+
+function generateHinglishTips(nutrition: NutriInfo, grade: string, ingredients: string = ""): string[] {
   const tips: string[] = [];
   const sodium = nutrition.sodium ?? (nutrition.salt ? nutrition.salt * 400 : 0);
   if (grade === "E") tips.push("🚨 Yaar yeh toh danga hai sehat ke saath — seriously avoid karo!");
   if (grade === "D") tips.push("⚠️ Kabhi kabhi theek hai — but daily mat khao bhai!");
   if ((nutrition.sugars ?? 0) > 20) tips.push(`🍬 Sugar ${nutrition.sugars}g per 100g — bahut zyada hai yeh!`);
   if (sodium > 600) tips.push(`🧂 Sodium ${Math.round(sodium)}mg — WHO limit 2000mg/din hai, yeh akele kaafi hai!`);
-  if ((nutrition.calories ?? 0) > 400) tips.push(`🔥 ${nutrition.calories} calories per 100g — ek portion mein hi zyada ho jayega!`);
+  if ((nutrition.calories ?? 0) > 350) tips.push(`🔥 ${nutrition.calories} calories per 100g — ek portion mein hi zyada ho jayega!`);
   if ((nutrition.protein ?? 0) > 10) tips.push(`💪 Protein ${nutrition.protein}g — yeh toh achha hai!`);
   if ((nutrition.fiber ?? 0) > 5) tips.push(`🌾 Fiber ${nutrition.fiber}g — gut ke liye achi cheez hai!`);
+  if (getMaidaPenalty(ingredients) > 0) tips.push("🌾 Isme Maida/refined flour hai — fiber kam, blood sugar spike ho sakta hai!");
+  if (getPalmOilPenalty(ingredients) > 0) tips.push("🌴 Palm/Vegetable oil hai isme — heart ke liye ideal nahi, kam matra mein lena!");
+  if (getHarmfulAdditivePenalty(ingredients) > 0) tips.push("⚗️ Isme harmful additives (TBHQ/BHA/artificial colors jaise) hain — jitna ho sake avoid karo!");
   return tips;
 }
 
@@ -810,8 +1274,9 @@ async function fetchFromLocalDB(barcode: string): Promise<Product | null> {
       alternatives = getCategoryAlternatives((found.category ?? "").toLowerCase());
     }
 
+    const ingredientsRaw = found.ingredients ?? "";
     const { displayScore } = found.nutrition && isNutritionComplete(found.nutrition)
-      ? calculateFSSAIGrade(found.nutrition)
+      ? calculateFSSAIGrade(found.nutrition, ingredientsRaw)
       : { displayScore: found.nutriScorePoints ?? 0 };
 
     return {
@@ -942,6 +1407,12 @@ const GRADE_VIBE: Record<string, { headline: string; sub: string; bg: string; te
   E: { headline: "Yaar yeh toh danga hai sehat ke saath! 🚨", sub: "Body pe direct attack 💀 — seriously avoid karo!", bg: "bg-red-50", text: "text-red-800", border: "border-red-200" },
 };
 
+const BANNER_COLORS = [
+  { bg: "bg-teal-500" },
+  { bg: "bg-purple-500" },
+  { bg: "bg-indigo-500" },
+];
+
 export default function Product() {
   const { barcode } = useParams();
   const [, setLocation] = useLocation();
@@ -950,12 +1421,15 @@ export default function Product() {
   const [product, setProduct] = React.useState<Product | null>(null);
   const [isLoading, setIsLoading] = React.useState(true);
   const [notFound, setNotFound] = React.useState(false);
+  const [packetWeight, setPacketWeight] = React.useState(100);
+  const [bannerColorIdx] = React.useState(() => Math.floor(Math.random() * BANNER_COLORS.length));
 
   React.useEffect(() => {
     if (!barcode) return;
     setIsLoading(true);
     setNotFound(false);
     setProduct(null);
+    setPacketWeight(100);
 
     (async () => {
       let result = await fetchFromLocalDB(barcode);
@@ -1005,14 +1479,20 @@ export default function Product() {
     );
   }
 
-  const grade = (product.nutriScore ?? "C").toUpperCase();
-  const vibe = GRADE_VIBE[grade] ?? GRADE_VIBE["C"];
+  const grade = (product.nutriScore ?? "?").toUpperCase();
+  const vibe = GRADE_VIBE[grade] ?? null;
   const isUnhealthy = grade === "C" || grade === "D" || grade === "E";
   const swadeshi = getSwadeshiScore(product.brand);
   const healthWarnings = product.hasCompleteNutrition ? getHealthWarnings(product.nutrition ?? {}) : [];
-  const homeAlts = (product.alternatives ?? []).filter(a => a.type === "home");
-  const shopAlts = (product.alternatives ?? []).filter(a => a.type === "shop");
-  const isEstimated = !product.hasCompleteNutrition && grade !== "?";
+
+  const homeAltsAll = (product.alternatives ?? []).filter(a => a.type === "home");
+  const shopAltsAll = (product.alternatives ?? []).filter(a => a.type === "shop");
+  const homeAlts = pickRotating(homeAltsAll, 2);
+  const shopAlts = pickRotating(shopAltsAll, 2);
+
+  const isEstimated = grade !== "?" && !product.hasCompleteNutrition;
+  // Naya rule ke hisab se: grade "?" hai YA estimate hai — dono case mein honest message dikhao
+  const showDataMessage = product.source === "OpenFoodFacts" && (grade === "?" || !product.hasCompleteNutrition);
 
   return (
     <div className="flex flex-col bg-background overflow-auto pb-8">
@@ -1048,31 +1528,40 @@ export default function Product() {
 
       <div className="px-4 pt-16 space-y-5">
 
-        {/* Incomplete Data — Naya Emotional Message */}
-        {product.source === "OpenFoodFacts" && !product.hasCompleteNutrition && (
+        {/* Incomplete/Missing Data — Honest Message */}
+        {showDataMessage && (
           <motion.div
             initial={{ opacity: 0, y: -10 }}
             animate={{ opacity: 1, y: 0 }}
             className="rounded-2xl p-4 border bg-blue-50 border-blue-200"
           >
-            <p className="font-bold text-blue-800 text-base">💙 Seedha dil se:</p>
-            <p className="text-sm mt-2 text-blue-700 leading-relaxed">
-              Bhai/Didi, yeh product hamare paas abhi naya hai. Jo data abhi hamare paas hai uske hisab se yeh product{" "}
-              {grade !== "?" ? (
-                <span className="font-bold">~{grade} estimated grade</span>
-              ) : (
-                "abhi grade nahi"
-              )}{" "}
-              mein aata hai. Hume aapke Health ki bahut Chinta hai.
-            </p>
-            <p className="text-sm mt-2 text-blue-600 font-medium">
-              Nutrio mein jo dikhta hai, woh sach hota hai. Hamesha. 😊
-            </p>
+            <p className="font-bold text-blue-800 text-base">💙 Bhai/Didi:</p>
+            {grade !== "?" ? (
+              <>
+                <p className="text-sm mt-2 text-blue-700 leading-relaxed">
+                  Yeh wala data thoda kam hai humare paas — par hum kabhi galat grade nahi dikhayenge, chahe data poora ho ya na ho. Abhi jo dikh raha hai (
+                  <span className="font-bold">~{grade} grade, {product.nutriScorePoints}/100</span>
+                  ), woh honest estimate hai jitna data hai usi se.
+                </p>
+                <p className="text-sm mt-2 text-blue-600 font-medium">
+                  Hum jald hi isse poora verify karenge — fir se check karna, tab tak humpe bharosa rakho. Aapki health humare liye sabse important hai. 😊
+                </p>
+              </>
+            ) : (
+              <>
+                <p className="text-sm mt-2 text-blue-700 leading-relaxed">
+                  Yeh product abhi humare paas poora data mein nahi hai, isliye hum grade nahi de rahe — galat dikhane se behtar hai kuch na dikhayen.
+                </p>
+                <p className="text-sm mt-2 text-blue-600 font-medium">
+                  Hum jald hi isse verify karke add karenge. Aapki health humare liye sabse important hai. 😊
+                </p>
+              </>
+            )}
           </motion.div>
         )}
 
         {/* Grade Vibe */}
-        {grade !== "?" && (
+        {grade !== "?" && vibe && (
           <motion.div
             initial={{ opacity: 0, scale: 0.97 }}
             animate={{ opacity: 1, scale: 1 }}
@@ -1119,10 +1608,13 @@ export default function Product() {
         {/* Nutrition */}
         {product.nutrition && (
           <section>
-            <h3 className="font-semibold mb-3 flex items-center gap-2 text-base">
+            <h3 className="font-semibold mb-1 flex items-center gap-2 text-base">
               <Info size={17} className="text-primary" />
               Kya hai andar? 👀 (per 100g)
             </h3>
+            <p className="text-xs text-muted-foreground mb-3">
+              ⚠️ Yeh values per 100g hain — apne packet ka weight dekhiye!
+            </p>
             <div className="space-y-2">
               {product.nutrition.calories != null && (
                 <TrafficLight label="Calories 🔥" value={product.nutrition.calories} level={getTrafficLevel(product.nutrition.calories, "calories")} unit=" kcal" />
@@ -1141,6 +1633,58 @@ export default function Product() {
               )}
               {product.nutrition.fiber != null && (
                 <TrafficLight label="Fiber 🌾" value={product.nutrition.fiber} level="low" />
+              )}
+            </div>
+
+            {/* Packet Weight Calculator */}
+            <div className="mt-4 p-4 rounded-xl bg-muted/40 border">
+              <div className="flex items-center justify-between mb-2">
+                <p className="text-sm font-semibold">📦 Apna packet ka weight set karo:</p>
+                <span className="text-sm font-bold text-primary">{packetWeight}g</span>
+              </div>
+              <input
+                type="range"
+                min={10}
+                max={500}
+                step={5}
+                value={packetWeight}
+                onChange={(e) => setPacketWeight(Number(e.target.value))}
+                className="w-full accent-primary"
+              />
+              <div className="flex justify-between text-xs text-muted-foreground mt-1">
+                <span>10g</span>
+                <span>500g</span>
+              </div>
+
+              {packetWeight !== 100 && (
+                <div className="mt-3 p-3 rounded-lg bg-primary/5 border border-primary/20">
+                  <p className="text-sm font-semibold mb-2">Tumhare {packetWeight}g packet mein:</p>
+                  <div className="grid grid-cols-2 gap-2 text-sm">
+                    {product.nutrition.calories != null && (
+                      <p>🔥 Calories: <span className="font-bold">{Math.round((product.nutrition.calories * packetWeight) / 100)} kcal</span></p>
+                    )}
+                    {product.nutrition.sugars != null && (
+                      <p>🍬 Sugar: <span className="font-bold">{((product.nutrition.sugars * packetWeight) / 100).toFixed(1)}g</span></p>
+                    )}
+                    {product.nutrition.fat != null && (
+                      <p>🫙 Fat: <span className="font-bold">{((product.nutrition.fat * packetWeight) / 100).toFixed(1)}g</span></p>
+                    )}
+                    {product.nutrition.salt != null && (
+                      <p>🧂 Salt: <span className="font-bold">{((product.nutrition.salt * packetWeight) / 100).toFixed(2)}g</span></p>
+                    )}
+                    {product.nutrition.protein != null && (
+                      <p>💪 Protein: <span className="font-bold">{((product.nutrition.protein * packetWeight) / 100).toFixed(1)}g</span></p>
+                    )}
+                    {product.nutrition.fiber != null && (
+                      <p>🌾 Fiber: <span className="font-bold">{((product.nutrition.fiber * packetWeight) / 100).toFixed(1)}g</span></p>
+                    )}
+                  </div>
+                  {grade !== "?" && (
+                    <p className="text-xs text-muted-foreground mt-2">
+                      Grade {grade} hamesha per-100g standard pe based hai — yeh sirf tumhare actual intake dikhane ke liye hai.
+                    </p>
+                  )}
+                </div>
               )}
             </div>
           </section>
@@ -1211,7 +1755,7 @@ export default function Product() {
       {/* Alternatives — New Card UI */}
       {isUnhealthy && product.hasCompleteNutrition && (homeAlts.length > 0 || shopAlts.length > 0) && (
         <div className="px-4 mt-5 space-y-4">
-          <div className={`rounded-2xl px-5 py-4 flex items-center gap-3 ${grade === "E" ? "bg-red-500" : "bg-orange-500"}`}>
+          <div className={`rounded-2xl px-5 py-4 flex items-center gap-3 ${BANNER_COLORS[bannerColorIdx].bg}`}>
             <RefreshCw size={22} className="text-white" />
             <div>
               <p className="font-bold text-white text-lg">Healthier Switch Kar! 🔄</p>
@@ -1280,4 +1824,3 @@ function getTrafficLevel(value: number | undefined | null, type: string): "low" 
   if (type === "calories") return value > 400 ? "high" : value > 100 ? "medium" : "low";
   return "low";
 }
-
